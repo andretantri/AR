@@ -65,6 +65,13 @@ function Scan() {
     };
   }, []);
 
+  // Auto-start scanner when camera is selected
+  useEffect(() => {
+    if (selectedCamera && !scanning) {
+      startScanner();
+    }
+  }, [selectedCamera]);
+
   const startScanner = async () => {
     if (!selectedCamera) return;
     
