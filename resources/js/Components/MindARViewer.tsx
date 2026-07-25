@@ -127,10 +127,16 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
               const scaleY = (m.scale_y && Number(m.scale_y) > 0) ? Number(m.scale_y) : 1;
               const scaleZ = (m.scale_z && Number(m.scale_z) > 0) ? Number(m.scale_z) : 1;
 
-              // Bring object slightly forward (+0.1) on Z axis so it floats in front of target plane
-              const posX = Number(m.position_x) || 0;
-              const posY = Number(m.position_y) || 0;
-              const posZ = (Number(m.position_z) || 0) + 0.1;
+              // Clamp large position offsets (e.g. > 1.5 units) so model is guaranteed to stay directly on the thumbnail
+              const rawX = Number(m.position_x) || 0;
+              const rawY = Number(m.position_y) || 0;
+              const rawZ = Number(m.position_z) || 0;
+
+              const posX = Math.abs(rawX) > 1.5 ? 0 : rawX;
+              const posY = Math.abs(rawY) > 1.5 ? 0 : rawY;
+              const posZ = Math.abs(rawZ) > 1.5 ? 0.1 : (rawZ + 0.1);
+
+              console.log(`📍 Model ${m.name || ''} diletakkan di koordinat AR: (${posX}, ${posY}, ${posZ}) dengan skala: ${scaleX * autoScale}`);
 
               container.position.set(posX, posY, posZ);
               container.rotation.set(
