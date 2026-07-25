@@ -55,10 +55,12 @@ export default function ArContentsEdit({ content, categories }: Props) {
     if (data.tracking_mode !== 'disabled' && (window as any).MINDAR) {
       const isImageMode = data.tracking_mode === 'image';
       const isMarkerMode = data.tracking_mode === 'marker';
+      const isQRCodeMode = data.tracking_mode === 'qrcode';
 
       if (
         (isImageMode && (data.thumbnail || (content.thumbnail_url && !content.mind_file_url))) ||
-        (isMarkerMode && !content.mind_file_url)
+        ((isMarkerMode || isQRCodeMode) && !content.mind_file_url) ||
+        (isQRCodeMode) // Recompile if they just switched to QR Code
       ) {
         setIsCompiling(true);
         setCompileProgress(0);
@@ -68,6 +70,30 @@ export default function ArContentsEdit({ content, categories }: Props) {
           
           if (isMarkerMode) {
              img.src = '/images/standard-marker.png';
+          } else if (data.tracking_mode === 'qrcode') {
+             // Generate QR Code image for compilation
+             const svg = document.getElementById('ar-qr-code');
+             if (!svg) throw new Error("QR Code tidak ditemukan");
+             const svgData = new XMLSerializer().serializeToString(svg);
+             const canvas = document.createElement('canvas');
+             const ctx = canvas.getContext('2d');
+             
+             await new Promise<void>((resolve, reject) => {
+               const tempImg = new window.Image();
+               tempImg.onload = () => {
+                 canvas.width = tempImg.width + 40;
+                 canvas.height = tempImg.height + 40;
+                 if (ctx) {
+                   ctx.fillStyle = 'white';
+                   ctx.fillRect(0, 0, canvas.width, canvas.height);
+                   ctx.drawImage(tempImg, 20, 20);
+                 }
+                 img.src = canvas.toDataURL('image/png');
+                 resolve();
+               };
+               tempImg.onerror = () => reject(new Error("Gagal generate QR Code"));
+               tempImg.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+             });
           } else {
              img.src = data.thumbnail ? URL.createObjectURL(data.thumbnail) : content.thumbnail_url!;
           }
@@ -213,6 +239,7 @@ export default function ArContentsEdit({ content, categories }: Props) {
                 <Select value={data.tracking_mode} onChange={e => setData('tracking_mode', e.target.value)}>
                   <option value="disabled">Tidak Ada (Hanya Viewer 3D Biasa)</option>
                   <option value="image">Gunakan Gambar Thumbnail (Image Tracking)</option>
+                  <option value="qrcode">Gunakan QR Code (All-in-One)</option>
                   <option value="marker">Gunakan Marker Standar AR Explorer</option>
                 </Select>
               </div>

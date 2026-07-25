@@ -85,6 +85,7 @@ function SceneModel({ model, isSelected, onClick }: { model: ArModel, isSelected
 
 export default function ArViewer({ content, related }: Props) {
   const [activeModelId, setActiveModelId] = useState<number | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
   
   // Check if there are any models that are GLB/GLTF
   const glbModels = content.models.filter(m => ['glb', 'gltf'].includes(m.file_type.toLowerCase()));
@@ -92,6 +93,36 @@ export default function ArViewer({ content, related }: Props) {
   
   const hasGlb = glbModels.length > 0;
   const hasPblr = pblrModels.length > 0;
+
+  if (content.tracking_mode !== 'disabled' && content.mind_file_url) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black font-nunito">
+        <Head title={`${content.title} - AR Camera`} />
+        
+        <MindARViewer mindFileUrl={content.mind_file_url} models={glbModels} />
+        
+        {/* Top Controls */}
+        <div className="absolute top-4 inset-x-4 z-50 flex justify-between items-start pointer-events-none">
+          <Link href="/" className="pointer-events-auto bg-black/50 text-white p-3 rounded-2xl backdrop-blur-md border border-white/20 shadow-xl">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          
+          <button onClick={() => setShowInfo(!showInfo)} className="pointer-events-auto bg-black/50 text-white px-4 py-3 rounded-2xl backdrop-blur-md border border-white/20 shadow-xl flex items-center gap-2 font-bold text-sm">
+            <Info className="w-4 h-4" /> Info
+          </button>
+        </div>
+
+        {/* Info Modal */}
+        {showInfo && (
+          <div className="absolute inset-x-4 bottom-4 z-50 bg-black/80 backdrop-blur-xl border border-white/20 rounded-3xl p-6 text-white shadow-2xl">
+            <h2 className="text-xl font-black mb-2">{content.title}</h2>
+            <p className="text-white/70 text-sm mb-4 leading-relaxed">{content.description || 'Tidak ada deskripsi'}</p>
+            <button onClick={() => setShowInfo(false)} className="w-full py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold transition-colors">Tutup</button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -137,11 +168,7 @@ export default function ArViewer({ content, related }: Props) {
 
               {/* Viewer Content */}
               <div className="p-4 relative">
-                {content.tracking_mode !== 'disabled' && content.mind_file_url ? (
-                  <div className="relative rounded-2xl overflow-hidden shadow-inner">
-                     <MindARViewer mindFileUrl={content.mind_file_url} models={glbModels} />
-                  </div>
-                ) : hasGlb ? (
+                {hasGlb ? (
                   <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-300" style={{ height: '500px' }}>
                     <Canvas
                       camera={{ position: [0, 2, 6], fov: 50 }}

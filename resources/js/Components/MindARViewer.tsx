@@ -103,7 +103,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
   }, [mindFileUrl, models]);
 
   return (
-    <div className="relative w-full h-[600px] bg-slate-900 rounded-3xl overflow-hidden border-4 border-slate-800 shadow-2xl">
+    <div className="relative w-full h-screen bg-black overflow-hidden">
       {isStarting && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm text-white">
           <Camera className="w-12 h-12 mb-4 animate-pulse text-violet-400" />
