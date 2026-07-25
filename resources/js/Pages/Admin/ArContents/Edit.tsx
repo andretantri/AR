@@ -68,6 +68,11 @@ export default function ArContentsEdit({ content, categories }: Props) {
           const compiler = new (window as any).MINDAR.IMAGE.Compiler();
           const img = new window.Image();
           
+          const imgLoadPromise = new Promise((resolve, reject) => { 
+             img.onload = resolve; 
+             img.onerror = () => reject(new Error("Gagal memuat gambar"));
+          });
+          
           if (isMarkerMode) {
              img.src = '/images/standard-marker.png';
           } else if (data.tracking_mode === 'qrcode') {
@@ -98,10 +103,8 @@ export default function ArContentsEdit({ content, categories }: Props) {
              img.src = data.thumbnail ? URL.createObjectURL(data.thumbnail) : content.thumbnail_url!;
           }
 
-          await new Promise((resolve, reject) => { 
-             img.onload = resolve; 
-             img.onerror = () => reject(new Error("Gagal memuat gambar"));
-          });
+          await imgLoadPromise;
+          
           await compiler.compileImageTargets([img], (progress: number) => {
              setCompileProgress(Math.round(progress));
           });
