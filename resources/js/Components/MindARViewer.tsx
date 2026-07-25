@@ -104,7 +104,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
   }, [mindFileUrl, models]);
 
   return (
-    <div className="relative w-full h-screen bg-black overflow-hidden">
+    <div className="relative w-full h-screen overflow-hidden">
       {isStarting && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm text-white">
           <Camera className="w-12 h-12 mb-4 animate-pulse text-violet-400" />
@@ -121,7 +121,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
       )}
 
       {/* MindAR will inject the video and canvas elements here */}
-      <div ref={containerRef} className="w-full h-full" />
+      <div ref={containerRef} className="absolute inset-0 z-0 isolate" />
       
       {/* Overlay Instructions */}
       {!isStarting && !error && (
