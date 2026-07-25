@@ -29,15 +29,15 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
 
   useEffect(() => {
     if (!containerRef.current) return;
-    
+
     let mindarThree: any;
     let isMounted = true;
-    
+
     const init = async () => {
       try {
         (window as any).THREE = THREE;
         if (!isMounted) return;
-        
+
         mindarThree = new MindARThree({
           container: containerRef.current,
           imageTargetSrc: mindFileUrl,
@@ -47,7 +47,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         });
 
         const { renderer, scene, camera } = mindarThree;
-        
+
         // Ensure WebGL Canvas renderer background is 100% transparent (chroma key cleared)
         renderer.setClearColor(0x000000, 0);
         scene.background = null;
@@ -58,7 +58,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         // Add strong lights so models with PBR materials are bright & visible
         const ambientLight = new THREE.AmbientLight(0xffffff, 2.0);
         scene.add(ambientLight);
-        
+
         const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
         dirLight.position.set(5, 10, 7.5);
         scene.add(dirLight);
@@ -70,7 +70,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         // Load models and attach to anchor 0 (the first/only image in the mind file)
         const anchor = mindarThree.addAnchor(0);
         anchorRef.current = anchor;
-        
+
         anchor.onTargetFound = () => {
           console.log("🎯 AR Target Terdeteksi!");
           if (isMounted) setTargetFound(true);
@@ -90,7 +90,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
             (gltf) => {
               console.log("📦 Berhasil memuat GLTF model:", m.file_url);
               const obj = gltf.scene;
-              
+
               // Store metadata on the THREE object for raycasting click detection
               obj.userData = { modelData: m };
               obj.traverse((child) => {
@@ -99,14 +99,14 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
                   child.frustumCulled = false; // Prevent frustum culling from hiding mesh
                 }
               });
-              
+
               // Calculate geometry bounding box and center point
               const box = new THREE.Box3().setFromObject(obj);
               const center = new THREE.Vector3();
               box.getCenter(center);
               const size = new THREE.Vector3();
               box.getSize(size);
-              
+
               // Center the inner geometry so its center is exactly at origin (0,0,0)
               obj.position.sub(center);
 
@@ -123,18 +123,27 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
                 }
               }
 
-              container.position.set(m.position_x, m.position_y, m.position_z);
+              const scaleX = (m.scale_x && Number(m.scale_x) > 0) ? Number(m.scale_x) : 1;
+              const scaleY = (m.scale_y && Number(m.scale_y) > 0) ? Number(m.scale_y) : 1;
+              const scaleZ = (m.scale_z && Number(m.scale_z) > 0) ? Number(m.scale_z) : 1;
+
+              // Bring object slightly forward (+0.1) on Z axis so it floats in front of target plane
+              const posX = Number(m.position_x) || 0;
+              const posY = Number(m.position_y) || 0;
+              const posZ = (Number(m.position_z) || 0) + 0.1;
+
+              container.position.set(posX, posY, posZ);
               container.rotation.set(
-                THREE.MathUtils.degToRad(m.rotation_x),
-                THREE.MathUtils.degToRad(m.rotation_y),
-                THREE.MathUtils.degToRad(m.rotation_z)
+                THREE.MathUtils.degToRad(Number(m.rotation_x) || 0),
+                THREE.MathUtils.degToRad(Number(m.rotation_y) || 0),
+                THREE.MathUtils.degToRad(Number(m.rotation_z) || 0)
               );
               container.scale.set(
-                m.scale_x * autoScale,
-                m.scale_y * autoScale,
-                m.scale_z * autoScale
+                scaleX * autoScale,
+                scaleY * autoScale,
+                scaleZ * autoScale
               );
-              
+
               anchor.group.add(container);
 
               // Play animation if available
@@ -241,7 +250,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
   };
 
   return (
-    <div 
+    <div
       className="relative w-full h-screen overflow-hidden select-none"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -254,7 +263,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           <p className="text-xs text-white/60 mt-2">Mohon berikan izin kamera jika diminta</p>
         </div>
       )}
-      
+
       {error && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-red-900/90 text-white p-6 text-center">
           <p className="font-bold mb-2">Oops!</p>
@@ -273,6 +282,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           left: 0 !important;
           margin: 0 !important;
           transform: none !important;
+          z-index: 1 !important;
         }
         #mindar-container canvas {
           width: 100% !important;
@@ -285,21 +295,22 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           transform: none !important;
           background: transparent !important;
           background-color: transparent !important;
+          z-index: 2 !important;
+          pointer-events: auto !important;
         }
       `}</style>
       <div id="mindar-container" ref={containerRef} className="absolute inset-0 z-0 isolate bg-black" />
-      
+
       {/* Fixed Status Indicator Pill at Top of Screen */}
       {!isStarting && !error && (
         <div className="absolute top-18 inset-x-4 flex justify-center z-30 pointer-events-none">
-          <div className={`px-5 py-2.5 rounded-full border backdrop-blur-xl text-center shadow-2xl transition-all duration-300 pointer-events-auto ${
-            targetFound 
-              ? 'bg-emerald-600/90 border-emerald-400/50 text-white scale-105 shadow-emerald-900/40' 
-              : 'bg-black/75 border-white/20 text-white/90'
-          }`}>
+          <div className={`px-5 py-2.5 rounded-full border backdrop-blur-xl text-center shadow-2xl transition-all duration-300 pointer-events-auto ${targetFound
+            ? 'bg-emerald-600/90 border-emerald-400/50 text-white scale-105 shadow-emerald-900/40'
+            : 'bg-black/75 border-white/20 text-white/90'
+            }`}>
             <p className="text-xs sm:text-sm font-black flex items-center gap-2">
               {targetFound ? (
-                <>✨ Target Terdeteksi! Putar & Sentuh Objek 3D</>
+                <>Target Terdeteksi! Putar & Sentuh Objek 3D</>
               ) : (
                 <>🔍 Arahkan kamera ke Gambar Thumbnail Target</>
               )}
@@ -321,7 +332,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
                 {selectedModel.description || 'Tidak ada deskripsi tambahan untuk objek ini.'}
               </p>
             </div>
-            <button 
+            <button
               onClick={() => setSelectedModel(null)}
               className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-sm hover:bg-slate-200 transition-colors"
             >
