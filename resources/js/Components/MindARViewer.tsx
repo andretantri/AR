@@ -40,6 +40,9 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         }
         if (!isMounted) return;
 
+        // CRITICAL: MindAR expects window.THREE to be set globally
+        (window as any).THREE = THREE;
+
         const { MindARThree } = (window as any).MINDAR.IMAGE;
         
         mindarThree = new MindARThree({
@@ -52,17 +55,29 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
 
         const { renderer, scene, camera } = mindarThree;
         
-        // Add light
-        const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-        scene.add(light);
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(0, 10, 5);
+        // Add strong lights so models with PBR materials are bright & visible
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        dirLight.position.set(5, 10, 7.5);
         scene.add(dirLight);
+
+        const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight2.position.set(-5, -5, -5);
+        scene.add(dirLight2);
 
         // Load models and attach to anchor 0 (the first/only image in the mind file)
         const anchor = mindarThree.addAnchor(0);
-        const loader = new GLTFLoader();
         
+        anchor.onTargetFound = () => {
+          console.log("🎯 AR Target Terdeteksi!");
+        };
+        anchor.onTargetLost = () => {
+          console.log("❌ AR Target Hilang dari pandangan");
+        };
+
+        const loader = new GLTFLoader();
         const mixers: THREE.AnimationMixer[] = [];
         const clock = new THREE.Clock();
 
@@ -89,20 +104,14 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           });
         });
 
-        await mindarThree.start();
-        setIsStarting(false);
-        
-        renderer.setAnimationLoop(() => {
+        // Use scene.onBeforeRender so mixers update automatically before MindAR renders each frame
+        scene.onBeforeRender = () => {
           const delta = clock.getDelta();
           mixers.forEach(mixer => mixer.update(delta));
-          
-          // CRITICAL: Must call mindarThree.update() so it processes the video frames!
-          if (mindarThree.update) {
-            mindarThree.update();
-          }
-          
-          renderer.render(scene, camera);
-        });
+        };
+
+        await mindarThree.start();
+        setIsStarting(false);
 
       } catch (err: any) {
         console.error("Gagal memulai AR", err);
