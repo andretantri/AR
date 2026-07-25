@@ -141,14 +141,17 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
               const scaleY = (Number.isFinite(numScaleY) && numScaleY > 0) ? numScaleY : 1;
               const scaleZ = (Number.isFinite(numScaleZ) && numScaleZ > 0) ? numScaleZ : 1;
 
-              // Clamp large position offsets (e.g. > 1.5 units) so model is guaranteed to stay directly on the thumbnail
+              // Map VisualEditor (XZ Floor plane) to MindAR (XY Target Card plane):
+              // - VisualEditor X (Left/Right) -> MindAR X
+              // - VisualEditor Z (Top/Bottom on card) -> MindAR Y (-rawZ because -Z is Top of card)
+              // - VisualEditor Y (Height off floor) -> MindAR Z (distance floating off card plane)
               const rawX = Number(m.position_x) || 0;
               const rawY = Number(m.position_y) || 0;
               const rawZ = Number(m.position_z) || 0;
 
-              const posX = Math.abs(rawX) > 1.5 ? 0 : rawX;
-              const posY = Math.abs(rawY) > 1.5 ? 0 : rawY;
-              const posZ = Math.abs(rawZ) > 1.5 ? 0.2 : (rawZ + 0.2);
+              const posX = Math.abs(rawX) > 2.5 ? 0 : rawX;
+              const posY = Math.abs(rawZ) > 2.5 ? 0 : -rawZ;
+              const posZ = Math.abs(rawY) > 2.5 ? 0.1 : (rawY + 0.1);
 
               console.log(`📍 Model ${m.name || ''} diletakkan di koordinat AR: (${posX}, ${posY}, ${posZ}) dengan skala: (${scaleX}, ${scaleY}, ${scaleZ})`);
 
