@@ -100,7 +100,7 @@ export default function ArContentsCreate({ categories }: Props) {
                     className="mt-1.5"
                   >
                     <option value="">-- Pilih Kategori --</option>
-                    {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </Select>
                 </div>
                 </CardContent>
