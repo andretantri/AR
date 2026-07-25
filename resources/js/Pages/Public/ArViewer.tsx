@@ -86,6 +86,7 @@ function SceneModel({ model, isSelected, onClick }: { model: ArModel, isSelected
 export default function ArViewer({ content, related }: Props) {
   const [activeModelId, setActiveModelId] = useState<number | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [isCameraMode, setIsCameraMode] = useState(true);
   
   // Check if there are any models that are GLB/GLTF
   const glbModels = content.models.filter(m => ['glb', 'gltf'].includes(m.file_type.toLowerCase()));
@@ -94,7 +95,7 @@ export default function ArViewer({ content, related }: Props) {
   const hasGlb = glbModels.length > 0;
   const hasPblr = pblrModels.length > 0;
 
-  if (content.tracking_mode !== 'disabled' && content.mind_file_url) {
+  if (isCameraMode && content.tracking_mode !== 'disabled' && content.mind_file_url) {
     return (
       <div className="fixed inset-0 z-50 bg-black font-nunito">
         <Head title={`${content.title} - AR Camera`} />
@@ -107,9 +108,18 @@ export default function ArViewer({ content, related }: Props) {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           
-          <button onClick={() => setShowInfo(!showInfo)} className="pointer-events-auto bg-black/50 text-white px-4 py-3 rounded-2xl backdrop-blur-md border border-white/20 shadow-xl flex items-center gap-2 font-bold text-sm">
-            <Info className="w-4 h-4" /> Info
-          </button>
+          <div className="flex gap-2 pointer-events-auto">
+            <button 
+              onClick={() => setIsCameraMode(false)} 
+              className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-3 rounded-2xl backdrop-blur-md border border-violet-400/30 shadow-xl flex items-center gap-2 font-bold text-xs"
+            >
+              <Monitor className="w-4 h-4" /> Mode 3D Studio
+            </button>
+
+            <button onClick={() => setShowInfo(!showInfo)} className="bg-black/50 text-white px-4 py-3 rounded-2xl backdrop-blur-md border border-white/20 shadow-xl flex items-center gap-2 font-bold text-xs">
+              <Info className="w-4 h-4" /> Info
+            </button>
+          </div>
         </div>
 
         {/* Info Modal */}
