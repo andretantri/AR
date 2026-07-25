@@ -35,13 +35,26 @@ export default function ArContentsEdit({ content, categories }: Props) {
   const [isCompiling, setIsCompiling] = useState(false);
   const [compileProgress, setCompileProgress] = useState(0);
 
+  const [mindARReady, setMindARReady] = useState(false);
+
   useEffect(() => {
     // Load MindAR compiler script for tracking features
-    if (!(window as any).MINDAR) {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js';
-      document.head.appendChild(script);
-    }
+    const checkAndLoad = () => {
+      if ((window as any).MINDAR?.IMAGE?.Compiler) {
+        setMindARReady(true);
+        return;
+      }
+      // Script not yet loaded - inject it
+      const existing = document.querySelector('script[data-mindar]');
+      if (!existing) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js';
+        script.setAttribute('data-mindar', '1');
+        script.onload = () => setMindARReady(true);
+        document.head.appendChild(script);
+      }
+    };
+    checkAndLoad();
   }, []);
   const thumbRef = useRef<HTMLInputElement>(null);
 
@@ -62,9 +75,9 @@ export default function ArContentsEdit({ content, categories }: Props) {
         : (isMarkerMode || isQRCodeMode);  // Always compile for marker/qrcode
 
       if (needsCompile) {
-        // Check MINDAR is available (loaded globally via app.blade.php)
-        if (!(window as any).MINDAR?.IMAGE?.Compiler) {
-          alert('Library AR belum siap. Coba refresh halaman ini dan tunggu beberapa detik.');
+        // Check MINDAR is available (loaded asynchronously on mount)
+        if (!mindARReady) {
+          alert('Library AR masih dimuat, mohon tunggu 5-10 detik lagi lalu coba simpan kembali.');
           return;
         }
 
@@ -159,15 +172,22 @@ export default function ArContentsEdit({ content, categories }: Props) {
             <p className="text-slate-500 font-medium mt-1 truncate max-w-md">{content.title}</p>
           </div>
         </div>
-        <Button type="submit" form="edit-form" disabled={processing || isCompiling} className="gap-2 shadow-lg hover:-translate-y-0.5 transition-all" size="lg">
-          {isCompiling ? (
-            <><RefreshCw className="w-5 h-5 animate-spin" /> Memproses ({compileProgress}%)</>
-          ) : processing ? (
-            'Menyimpan...'
-          ) : (
-            <><Upload className="w-5 h-5" /> Simpan Perubahan</>
+        <div className="flex flex-col items-end gap-1">
+          {!mindARReady && data.tracking_mode !== 'disabled' && (
+            <p className="text-xs text-amber-600 font-bold flex items-center gap-1">
+              <RefreshCw className="w-3 h-3 animate-spin" /> Memuat Library AR...
+            </p>
           )}
-        </Button>
+          <Button type="submit" form="edit-form" disabled={processing || isCompiling || (!mindARReady && data.tracking_mode !== 'disabled')} className="gap-2 shadow-lg hover:-translate-y-0.5 transition-all" size="lg">
+            {isCompiling ? (
+              <><RefreshCw className="w-5 h-5 animate-spin" /> Memproses ({compileProgress}%)</>
+            ) : processing ? (
+              'Menyimpan...'
+            ) : (
+              <><Upload className="w-5 h-5" /> Simpan Perubahan</>
+            )}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

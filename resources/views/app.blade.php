@@ -18,9 +18,6 @@
         <!-- Model Viewer for AR (GLB/GLTF support) -->
         <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
 
-        <!-- MindAR for Image Tracking & Compilation -->
-        <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
-
         <!-- Scripts -->
         @routes
         @viteReactRefresh
