@@ -48,15 +48,22 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
 
         const { renderer, scene, camera } = mindarThree;
         
+        // Ensure WebGL Canvas renderer background is 100% transparent (chroma key cleared)
+        renderer.setClearColor(0x000000, 0);
+        scene.background = null;
+        if (renderer.domElement) {
+          renderer.domElement.style.background = 'transparent';
+        }
+
         // Add strong lights so models with PBR materials are bright & visible
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.8);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 2.0);
         scene.add(ambientLight);
         
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
         dirLight.position.set(5, 10, 7.5);
         scene.add(dirLight);
 
-        const dirLight2 = new THREE.DirectionalLight(0xffffff, 1.0);
+        const dirLight2 = new THREE.DirectionalLight(0xffffff, 1.2);
         dirLight2.position.set(-5, -5, -5);
         scene.add(dirLight2);
 
@@ -257,7 +264,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
 
       {/* MindAR will inject the video and canvas elements here */}
       <style>{`
-        #mindar-container video, #mindar-container canvas {
+        #mindar-container video {
           width: 100% !important;
           height: 100% !important;
           object-fit: cover !important;
@@ -267,12 +274,43 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           margin: 0 !important;
           transform: none !important;
         }
+        #mindar-container canvas {
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover !important;
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+          margin: 0 !important;
+          transform: none !important;
+          background: transparent !important;
+          background-color: transparent !important;
+        }
       `}</style>
       <div id="mindar-container" ref={containerRef} className="absolute inset-0 z-0 isolate bg-black" />
       
+      {/* Fixed Status Indicator Pill at Top of Screen */}
+      {!isStarting && !error && (
+        <div className="absolute top-18 inset-x-4 flex justify-center z-30 pointer-events-none">
+          <div className={`px-5 py-2.5 rounded-full border backdrop-blur-xl text-center shadow-2xl transition-all duration-300 pointer-events-auto ${
+            targetFound 
+              ? 'bg-emerald-600/90 border-emerald-400/50 text-white scale-105 shadow-emerald-900/40' 
+              : 'bg-black/75 border-white/20 text-white/90'
+          }`}>
+            <p className="text-xs sm:text-sm font-black flex items-center gap-2">
+              {targetFound ? (
+                <>✨ Target Terdeteksi! Putar & Sentuh Objek 3D</>
+              ) : (
+                <>🔍 Arahkan kamera ke Gambar Thumbnail Target</>
+              )}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Selected Model Detail Modal Overlay */}
       {selectedModel && (
-        <div className="absolute top-20 inset-x-4 z-40 bg-white/95 backdrop-blur-xl p-5 rounded-3xl shadow-2xl border border-white/20 animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="absolute top-32 inset-x-4 z-40 bg-white/95 backdrop-blur-xl p-5 rounded-3xl shadow-2xl border border-white/20 animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="flex items-start justify-between gap-4">
             <div>
               <span className="px-2.5 py-1 rounded-full bg-violet-100 text-violet-700 font-extrabold text-[10px] uppercase tracking-wider">
@@ -289,25 +327,6 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
             >
               ✕
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Overlay Status Instructions */}
-      {!isStarting && !error && (
-        <div className="absolute bottom-6 inset-x-0 flex justify-center z-10 pointer-events-none">
-          <div className={`px-6 py-3 rounded-full border backdrop-blur-md text-center shadow-2xl transition-all duration-300 ${
-            targetFound 
-              ? 'bg-emerald-600/90 border-emerald-400/50 text-white animate-bounce pointer-events-auto' 
-              : 'bg-black/70 border-white/20 text-white/90'
-          }`}>
-            <p className="text-sm font-black flex items-center gap-2">
-              {targetFound ? (
-                <>✨ Target Terdeteksi! Putar & Sentuh Objek 3D</>
-              ) : (
-                <>🔍 Arahkan kamera ke Gambar Thumbnail Target</>
-              )}
-            </p>
           </div>
         </div>
       )}
