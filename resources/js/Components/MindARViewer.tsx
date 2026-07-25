@@ -80,32 +80,6 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           if (isMounted) setTargetFound(false);
         };
 
-        // 1. Add synchronous 3D Cyan Target Overlay Plane (MeshBasicMaterial + depthTest: false guarantees 100% visibility)
-        const planeGeo = new THREE.PlaneGeometry(1.2, 1.2);
-        const planeMat = new THREE.MeshBasicMaterial({ 
-          color: 0x00ffff, 
-          side: THREE.DoubleSide, 
-          transparent: true, 
-          opacity: 0.75,
-          depthTest: false
-        });
-        const cyanPlane = new THREE.Mesh(planeGeo, planeMat);
-        cyanPlane.position.set(0, 0, 0.05);
-        cyanPlane.name = "cyanPlane";
-        anchor.group.add(cyanPlane);
-
-        // 2. Add synchronous 3D Red Cube (MeshBasicMaterial + depthTest: false guarantees 100% visibility)
-        const cubeGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
-        const cubeMat = new THREE.MeshBasicMaterial({ 
-          color: 0xff0055,
-          side: THREE.DoubleSide,
-          depthTest: false
-        });
-        const placeholderCube = new THREE.Mesh(cubeGeo, cubeMat);
-        placeholderCube.position.set(0, 0, 0.3);
-        placeholderCube.name = "placeholderCube";
-        anchor.group.add(placeholderCube);
-
         const loader = new GLTFLoader();
         const mixers: THREE.AnimationMixer[] = [];
         const clock = new THREE.Clock();
@@ -115,9 +89,6 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
             m.file_url,
             (gltf) => {
               console.log("📦 Berhasil memuat GLTF model:", m.file_url);
-              // Hide placeholder cube once real GLTF model finishes loading
-              placeholderCube.visible = false;
-              
               const obj = gltf.scene;
               
               // Store metadata on the THREE object for raycasting click detection
@@ -254,12 +225,6 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         renderer.setAnimationLoop(() => {
           const delta = clock.getDelta();
           mixers.forEach(mixer => mixer.update(delta));
-
-          if (placeholderCube && placeholderCube.visible) {
-            placeholderCube.rotation.x += 0.02;
-            placeholderCube.rotation.y += 0.03;
-          }
-
           renderer.render(scene, camera);
         });
 
