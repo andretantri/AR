@@ -144,16 +144,23 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
 
               const maxDim = Math.max(size.x, size.y, size.z);
               let autoScale = 1;
-              if (maxDim > 0) {
+              if (Number.isFinite(maxDim) && maxDim > 0) {
                 // Normalize model size to ~1.0 unit if it is too huge (> 1.5) or tiny (< 0.1)
                 if (maxDim > 1.5 || maxDim < 0.1) {
                   autoScale = 1.0 / maxDim;
                 }
               }
+              if (!Number.isFinite(autoScale) || autoScale <= 0) {
+                autoScale = 1;
+              }
 
-              const scaleX = (m.scale_x && Number(m.scale_x) > 0) ? Number(m.scale_x) : 1;
-              const scaleY = (m.scale_y && Number(m.scale_y) > 0) ? Number(m.scale_y) : 1;
-              const scaleZ = (m.scale_z && Number(m.scale_z) > 0) ? Number(m.scale_z) : 1;
+              const numScaleX = Number(m.scale_x);
+              const numScaleY = Number(m.scale_y);
+              const numScaleZ = Number(m.scale_z);
+
+              const scaleX = (Number.isFinite(numScaleX) && numScaleX > 0) ? numScaleX : 1;
+              const scaleY = (Number.isFinite(numScaleY) && numScaleY > 0) ? numScaleY : 1;
+              const scaleZ = (Number.isFinite(numScaleZ) && numScaleZ > 0) ? numScaleZ : 1;
 
               // Clamp large position offsets (e.g. > 1.5 units) so model is guaranteed to stay directly on the thumbnail
               const rawX = Number(m.position_x) || 0;
@@ -311,6 +318,16 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
 
       {/* MindAR will inject the video and canvas elements here */}
       <style>{`
+        #mindar-container video, #mindar-container canvas {
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
         #mindar-container video {
           z-index: 1 !important;
         }
