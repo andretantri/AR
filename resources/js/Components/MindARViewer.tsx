@@ -312,28 +312,12 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
       {/* MindAR will inject the video and canvas elements here */}
       <style>{`
         #mindar-container video {
-          width: 100% !important;
-          height: 100% !important;
-          object-fit: cover !important;
-          position: absolute !important;
-          top: 0 !important;
-          left: 0 !important;
-          margin: 0 !important;
-          transform: none !important;
           z-index: 1 !important;
         }
         #mindar-container canvas {
-          width: 100% !important;
-          height: 100% !important;
-          object-fit: cover !important;
-          position: absolute !important;
-          top: 0 !important;
-          left: 0 !important;
-          margin: 0 !important;
-          transform: none !important;
+          z-index: 2 !important;
           background: transparent !important;
           background-color: transparent !important;
-          z-index: 2 !important;
           pointer-events: auto !important;
         }
       `}</style>
