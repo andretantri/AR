@@ -85,9 +85,9 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           renderer.render(scene, camera);
         });
 
-      } catch (err) {
+      } catch (err: any) {
         console.error("Gagal memulai AR", err);
-        setError("Gagal mengakses kamera atau memuat file AR.");
+        setError("Gagal mengakses kamera atau memuat file AR. " + (err?.message || String(err)));
         setIsStarting(false);
       }
     };

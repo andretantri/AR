@@ -19,7 +19,7 @@
         <script type="importmap">
             {
                 "imports": {
-                    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r147/three.module.js",
+                    "three": "https://unpkg.com/three@0.147.0/build/three.module.js",
                     "three/addons/": "https://unpkg.com/three@0.147.0/examples/jsm/"
                 }
             }
