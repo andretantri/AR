@@ -92,10 +92,15 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         await mindarThree.start();
         setIsStarting(false);
         
-        // Setup render loop manually because MindAR doesn't automatically loop in custom integration
         renderer.setAnimationLoop(() => {
           const delta = clock.getDelta();
           mixers.forEach(mixer => mixer.update(delta));
+          
+          // CRITICAL: Must call mindarThree.update() so it processes the video frames!
+          if (mindarThree.update) {
+            mindarThree.update();
+          }
+          
           renderer.render(scene, camera);
         });
 
@@ -137,12 +142,17 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
       {/* MindAR will inject the video and canvas elements here */}
       <style>{`
         #mindar-container video, #mindar-container canvas {
+          width: 100% !important;
+          height: 100% !important;
           object-fit: cover !important;
-          width: 100vw !important;
-          height: 100vh !important;
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
+          margin: 0 !important;
+          transform: none !important;
         }
       `}</style>
-      <div id="mindar-container" ref={containerRef} className="absolute inset-0 z-0 isolate" />
+      <div id="mindar-container" ref={containerRef} className="absolute inset-0 z-0 isolate bg-black" />
       
       {/* Overlay Instructions */}
       {!isStarting && !error && (
