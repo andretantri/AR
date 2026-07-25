@@ -52,68 +52,85 @@ export default function ArContentsEdit({ content, categories }: Props) {
     
     let compiledFile: File | null = null;
 
-    if (data.tracking_mode !== 'disabled' && (window as any).MINDAR) {
+    if (data.tracking_mode !== 'disabled') {
       const isImageMode = data.tracking_mode === 'image';
       const isMarkerMode = data.tracking_mode === 'marker';
       const isQRCodeMode = data.tracking_mode === 'qrcode';
 
-      if (
-        (isImageMode && (data.thumbnail || (content.thumbnail_url && !content.mind_file_url))) ||
-        ((isMarkerMode || isQRCodeMode) && !content.mind_file_url) ||
-        (isQRCodeMode) // Recompile if they just switched to QR Code
-      ) {
+      const needsCompile = isImageMode
+        ? (data.thumbnail || (content.thumbnail_url && !content.mind_file_url))
+        : (isMarkerMode || isQRCodeMode);  // Always compile for marker/qrcode
+
+      if (needsCompile) {
+        // Load MINDAR if not already loaded
+        if (!(window as any).MINDAR) {
+          try {
+            await new Promise<void>((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js';
+              script.onload = () => resolve();
+              script.onerror = () => reject(new Error('Gagal memuat MINDAR'));
+              document.head.appendChild(script);
+            });
+          } catch {
+            alert('Gagal memuat library AR. Pastikan koneksi internet aktif.');
+            return;
+          }
+        }
+
         setIsCompiling(true);
         setCompileProgress(0);
+        
         try {
-          const compiler = new (window as any).MINDAR.IMAGE.Compiler();
-          const img = new window.Image();
-          
-          const imgLoadPromise = new Promise((resolve, reject) => { 
-             img.onload = resolve; 
-             img.onerror = () => reject(new Error("Gagal memuat gambar"));
-          });
-          
+          // Helper: load an img element from a src robustly
+          const loadImage = (src: string): Promise<HTMLImageElement> =>
+            new Promise((resolve, reject) => {
+              const img = new window.Image();
+              img.onload = () => resolve(img);
+              img.onerror = () => reject(new Error('Gagal memuat gambar: ' + src.substring(0, 50)));
+              img.src = src;
+            });
+
+          let targetImg: HTMLImageElement;
+
           if (isMarkerMode) {
-             img.src = '/images/standard-marker.png';
-          } else if (data.tracking_mode === 'qrcode') {
-             // Generate QR Code image for compilation
-             const svg = document.getElementById('ar-qr-code');
-             if (!svg) throw new Error("QR Code tidak ditemukan");
-             const svgData = new XMLSerializer().serializeToString(svg);
-             const canvas = document.createElement('canvas');
-             const ctx = canvas.getContext('2d');
-             
-             await new Promise<void>((resolve, reject) => {
-               const tempImg = new window.Image();
-               tempImg.onload = () => {
-                 canvas.width = tempImg.width + 40;
-                 canvas.height = tempImg.height + 40;
-                 if (ctx) {
-                   ctx.fillStyle = 'white';
-                   ctx.fillRect(0, 0, canvas.width, canvas.height);
-                   ctx.drawImage(tempImg, 20, 20);
-                 }
-                 img.src = canvas.toDataURL('image/png');
-                 resolve();
-               };
-               tempImg.onerror = () => reject(new Error("Gagal generate QR Code"));
-               tempImg.src = 'data:image/svg+xml;base64,' + btoa(svgData);
-             });
+            targetImg = await loadImage('/images/standard-marker.png');
+          } else if (isQRCodeMode) {
+            const svg = document.getElementById('ar-qr-code');
+            if (!svg) throw new Error('QR Code tidak ditemukan di halaman');
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const b64 = btoa(unescape(encodeURIComponent(svgData)));
+            const svgUrl = 'data:image/svg+xml;base64,' + b64;
+            
+            // Convert SVG → PNG via canvas for best compatibility
+            const svgImg = await loadImage(svgUrl);
+            const canvas = document.createElement('canvas');
+            canvas.width = svgImg.naturalWidth + 80;
+            canvas.height = svgImg.naturalHeight + 80;
+            const ctx = canvas.getContext('2d')!;
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(svgImg, 40, 40);
+            const pngDataUrl = canvas.toDataURL('image/png');
+            targetImg = await loadImage(pngDataUrl);
           } else {
-             img.src = data.thumbnail ? URL.createObjectURL(data.thumbnail) : content.thumbnail_url!;
+            const src = data.thumbnail 
+              ? URL.createObjectURL(data.thumbnail) 
+              : content.thumbnail_url!;
+            targetImg = await loadImage(src);
           }
 
-          await imgLoadPromise;
-          
-          await compiler.compileImageTargets([img], (progress: number) => {
-             setCompileProgress(Math.round(progress));
+          const compiler = new (window as any).MINDAR.IMAGE.Compiler();
+          await compiler.compileImageTargets([targetImg], (progress: number) => {
+            setCompileProgress(Math.round(progress));
           });
           const buffer = await compiler.exportData();
           const blob = new Blob([buffer], { type: 'application/octet-stream' });
           compiledFile = new File([blob], 'targets.mind', { type: 'application/octet-stream' });
+          console.log('✅ Kompilasi AR berhasil, ukuran file:', compiledFile.size, 'bytes');
         } catch (err) {
-          console.error("Gagal mengkompilasi target", err);
-          alert("Gagal memproses gambar untuk AR Tracking. Coba gambar lain.");
+          console.error('❌ Gagal mengkompilasi target AR:', err);
+          alert('Gagal memproses gambar untuk AR Tracking: ' + (err as Error).message);
           setIsCompiling(false);
           return;
         }
