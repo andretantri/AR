@@ -64,15 +64,17 @@ export default function ArContentsEdit({ content, categories }: Props) {
         try {
           const compiler = new (window as any).MINDAR.IMAGE.Compiler();
           const img = new window.Image();
-          img.crossOrigin = 'anonymous';
           
           if (isMarkerMode) {
-             img.src = '/images/standard-marker.svg';
+             img.src = '/images/standard-marker.png';
           } else {
              img.src = data.thumbnail ? URL.createObjectURL(data.thumbnail) : content.thumbnail_url!;
           }
 
-          await new Promise(r => { img.onload = r; });
+          await new Promise((resolve, reject) => { 
+             img.onload = resolve; 
+             img.onerror = () => reject(new Error("Gagal memuat gambar"));
+          });
           await compiler.compileImageTargets([img], (progress: number) => {
              setCompileProgress(Math.round(progress));
           });
@@ -208,9 +210,9 @@ export default function ArContentsEdit({ content, categories }: Props) {
                   Pilih bagaimana pengalaman AR ini dipicu saat dibuka di perangkat pengguna.
                 </p>
                 <Select value={data.tracking_mode} onChange={e => setData('tracking_mode', e.target.value)}>
-                  <option value="disabled">🚫 Tidak Ada (Hanya Viewer 3D Biasa)</option>
-                  <option value="image">🖼️ Gunakan Gambar Thumbnail (Image Tracking)</option>
-                  <option value="marker">🔳 Gunakan Marker Standar AR Explorer</option>
+                  <option value="disabled">Tidak Ada (Hanya Viewer 3D Biasa)</option>
+                  <option value="image">Gunakan Gambar Thumbnail (Image Tracking)</option>
+                  <option value="marker">Gunakan Marker Standar AR Explorer</option>
                 </Select>
               </div>
 
@@ -219,7 +221,7 @@ export default function ArContentsEdit({ content, categories }: Props) {
                   <p className="text-xs text-slate-600 mb-2 font-medium">
                     Cetak gambar marker ini untuk digunakan sebagai pemicu AR.
                   </p>
-                  <a href="/images/standard-marker.svg" download="AR-Explorer-Marker.svg">
+                  <a href="/images/standard-marker.png" download="AR-Explorer-Marker.png">
                     <Button type="button" variant="outline" size="sm" className="w-full gap-2">
                       <Download className="w-4 h-4" /> Unduh Marker Standar
                     </Button>
