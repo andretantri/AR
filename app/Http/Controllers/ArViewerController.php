@@ -68,6 +68,7 @@ class ArViewerController extends Controller
             'content' => [
                 ...$arContent->toArray(),
                 'thumbnail_url' => $arContent->thumbnail_url,
+                'mind_file_url' => $arContent->mind_file_url,
                 'models' => $arContent->models->map(fn($m) => [
                     ...$m->toArray(),
                     'file_url' => $m->file_url,

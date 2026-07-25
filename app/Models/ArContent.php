@@ -19,6 +19,8 @@ class ArContent extends Model
         'file_size' => 'integer',
     ];
 
+    protected $appends = ['thumbnail_url', 'mind_file_url'];
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(ArCategory::class, 'ar_category_id');
@@ -37,5 +39,10 @@ class ArContent extends Model
     public function getThumbnailUrlAttribute(): ?string
     {
         return $this->thumbnail_path ? asset('storage/' . $this->thumbnail_path) : null;
+    }
+
+    public function getMindFileUrlAttribute(): ?string
+    {
+        return $this->mind_file_path ? asset('storage/' . $this->mind_file_path) : null;
     }
 }
