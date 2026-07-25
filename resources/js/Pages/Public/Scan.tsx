@@ -7,7 +7,36 @@ import { PageProps as BasePageProps } from '@/types';
 
 type PageProps = Omit<BasePageProps, 'auth'> & { auth?: { user?: any } };
 
-export default function Scan() {
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
+  constructor(props: {children: React.ReactNode}) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 bg-red-50 text-red-600 rounded-2xl m-4">
+          <h2 className="font-bold text-lg mb-2">Terjadi Kesalahan Aplikasi</h2>
+          <pre className="text-xs whitespace-pre-wrap">{this.state.error?.toString()}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function ScanPage() {
+  return (
+    <ErrorBoundary>
+      <Scan />
+    </ErrorBoundary>
+  );
+}
+
+function Scan() {
   const [error, setError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [cameras, setCameras] = useState<any[]>([]);
@@ -141,12 +170,13 @@ export default function Scan() {
             </div>
           )}
 
-          <div 
-            id="reader" 
-            className="w-full bg-black/40 rounded-2xl overflow-hidden mb-4 flex-1 flex items-center justify-center"
-          >
+          <div className="w-full bg-black/40 rounded-2xl overflow-hidden mb-4 flex-1 relative flex items-center justify-center">
+            {/* The actual reader container must be empty so React doesn't fight with html5-qrcode over its children */}
+            <div id="reader" className="w-full h-full absolute inset-0"></div>
+            
+            {/* Overlay for inactive state */}
             {!scanning && (
-              <div className="text-white/40 font-bold text-sm">
+              <div className="text-white/40 font-bold text-sm z-10">
                 Kamera tidak aktif
               </div>
             )}
