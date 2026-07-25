@@ -44,6 +44,10 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           uiLoading: 'yes',
           uiScanning: 'yes',
           uiError: 'yes',
+          filterMinCF: 0.0001, // Smooth out jitter/wobble when target is still
+          filterBeta: 1.0,      // Stabilize movement during camera pan
+          missTolerance: 10,    // Keep tracking steady through micro camera shakes
+          warmupTolerance: 5,
         });
 
         const { renderer, scene, camera } = mindarThree;
@@ -77,7 +81,10 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         };
         anchor.onTargetLost = () => {
           console.log("❌ AR Target Hilang dari pandangan");
-          if (isMounted) setTargetFound(false);
+          if (isMounted) {
+            setTargetFound(false);
+            setSelectedModel(null); // Automatically hide model info popup when target is lost
+          }
         };
 
         const loader = new GLTFLoader();
@@ -159,7 +166,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
 
               container.position.set(posX, posY, posZ);
               container.rotation.set(
-                THREE.MathUtils.degToRad(Number(m.rotation_x) || 0),
+                THREE.MathUtils.degToRad(Number(m.rotation_x) || 0) + Math.PI / 2,
                 THREE.MathUtils.degToRad(Number(m.rotation_y) || 0),
                 THREE.MathUtils.degToRad(Number(m.rotation_z) || 0)
               );
@@ -349,7 +356,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
       )}
 
       {/* Selected Model Detail Modal Overlay */}
-      {selectedModel && (
+      {selectedModel && targetFound && (
         <div className="absolute top-32 inset-x-4 z-40 bg-white/95 backdrop-blur-xl p-5 rounded-3xl shadow-2xl border border-white/20 animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="flex items-start justify-between gap-4">
             <div>
