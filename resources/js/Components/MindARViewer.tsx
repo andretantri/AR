@@ -133,25 +133,25 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
               const container = new THREE.Group();
               container.add(obj);
 
+              // Scale factor to map VisualEditor 3.0 unit plane to MindAR 1.0 unit card
+              const scaleFactor = 1.0 / 3.0; // 0.33333
+
               const numScaleX = Number(m.scale_x);
               const numScaleY = Number(m.scale_y);
               const numScaleZ = Number(m.scale_z);
 
-              const scaleX = (Number.isFinite(numScaleX) && numScaleX > 0) ? numScaleX : 1;
-              const scaleY = (Number.isFinite(numScaleY) && numScaleY > 0) ? numScaleY : 1;
-              const scaleZ = (Number.isFinite(numScaleZ) && numScaleZ > 0) ? numScaleZ : 1;
+              const scaleX = ((Number.isFinite(numScaleX) && numScaleX > 0) ? numScaleX : 1) * scaleFactor;
+              const scaleY = ((Number.isFinite(numScaleY) && numScaleY > 0) ? numScaleY : 1) * scaleFactor;
+              const scaleZ = ((Number.isFinite(numScaleZ) && numScaleZ > 0) ? numScaleZ : 1) * scaleFactor;
 
               // Map VisualEditor (XZ Floor plane) to MindAR (XY Target Card plane):
-              // - VisualEditor X (Left/Right) -> MindAR X
-              // - VisualEditor Z (Top/Bottom on card) -> MindAR Y (-rawZ because -Z is Top of card)
-              // - VisualEditor Y (Height off floor) -> MindAR Z (distance floating off card plane)
               const rawX = Number(m.position_x) || 0;
               const rawY = Number(m.position_y) || 0;
               const rawZ = Number(m.position_z) || 0;
 
-              const posX = Math.abs(rawX) > 2.5 ? 0 : rawX;
-              const posY = Math.abs(rawZ) > 2.5 ? 0 : -rawZ;
-              const posZ = Math.abs(rawY) > 2.5 ? 0.1 : (rawY + 0.1);
+              const posX = (Math.abs(rawX) > 4.5 ? 0 : rawX) * scaleFactor;
+              const posY = (Math.abs(rawZ) > 4.5 ? 0 : -rawZ) * scaleFactor;
+              const posZ = Math.abs(rawY) > 4.5 ? 0.05 : (rawY * scaleFactor + 0.05);
 
               console.log(`📍 Model ${m.name || ''} diletakkan di koordinat AR: (${posX}, ${posY}, ${posZ}) dengan skala: (${scaleX}, ${scaleY}, ${scaleZ})`);
 
