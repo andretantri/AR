@@ -7,7 +7,8 @@ import { Input } from '@/Components/ui/input';
 import { Textarea } from '@/Components/ui/textarea';
 import { Label } from '@/Components/ui/label';
 import { Select } from '@/Components/ui/select';
-import { ArrowLeft, Upload, FileBox, Image, AlertCircle, CheckCircle, RefreshCw, BoxSelect, Download } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { ArrowLeft, Upload, FileBox, Image, AlertCircle, CheckCircle, RefreshCw, BoxSelect, Download, QrCode } from 'lucide-react';
 import VisualEditor from './VisualEditor';
 
 interface Category { id: number; name: string; color: string; icon: string; }
@@ -228,6 +229,61 @@ export default function ArContentsEdit({ content, categories }: Props) {
                   </a>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-md mt-6">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-100 flex-shrink-0">
+                  <QRCodeSVG 
+                    id="ar-qr-code"
+                    value={`${window.location.origin}/ar/${content.id}`} 
+                    size={80} 
+                    level="M" 
+                    includeMargin={false}
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <QrCode className="w-4 h-4 text-violet-600" /> Akses Cepat (QR Code)
+                  </Label>
+                  <p className="text-xs text-slate-500 mb-3 mt-1 leading-relaxed">
+                    Cetak QR Code ini agar pengunjung bisa langsung membuka pengalaman AR ini dari HP mereka.
+                  </p>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full gap-2 text-violet-600 border-violet-200 hover:bg-violet-50"
+                    onClick={() => {
+                      const svg = document.getElementById('ar-qr-code');
+                      if (!svg) return;
+                      const svgData = new XMLSerializer().serializeToString(svg);
+                      const canvas = document.createElement('canvas');
+                      const ctx = canvas.getContext('2d');
+                      const img = new window.Image();
+                      img.onload = () => {
+                        canvas.width = img.width + 40;
+                        canvas.height = img.height + 40;
+                        if (ctx) {
+                          ctx.fillStyle = 'white';
+                          ctx.fillRect(0, 0, canvas.width, canvas.height);
+                          ctx.drawImage(img, 20, 20);
+                        }
+                        const pngFile = canvas.toDataURL('image/png');
+                        const downloadLink = document.createElement('a');
+                        downloadLink.download = `QR-AR-${content.id}.png`;
+                        downloadLink.href = `${pngFile}`;
+                        downloadLink.click();
+                      };
+                      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+                    }}
+                  >
+                    <Download className="w-4 h-4" /> Download QR Code
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

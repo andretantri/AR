@@ -49,6 +49,7 @@
         "html5-qrcode": "^2.3.8",
         "lucide-react": "^1.26.0",
         "mind-ar": "^1.2.5",
+        "qrcode.react": "^4.2.0",
         "react-dropzone": "^19.1.1",
         "sonner": "^2.0.7",
         "tailwind-merge": "^3.6.0",
