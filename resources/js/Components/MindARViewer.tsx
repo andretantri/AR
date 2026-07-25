@@ -70,7 +70,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         // Load models and attach to anchor 0 (the first/only image in the mind file)
         const anchor = mindarThree.addAnchor(0);
         anchorRef.current = anchor;
-
+        
         anchor.onTargetFound = () => {
           console.log("🎯 AR Target Terdeteksi!");
           if (isMounted) setTargetFound(true);
@@ -79,6 +79,31 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           console.log("❌ AR Target Hilang dari pandangan");
           if (isMounted) setTargetFound(false);
         };
+
+        // 1. Add synchronous 3D Emerald Target Ring on the target plane
+        const baseRingGeo = new THREE.RingGeometry(0.35, 0.45, 32);
+        const baseRingMat = new THREE.MeshBasicMaterial({ 
+          color: 0x10b981, 
+          side: THREE.DoubleSide, 
+          transparent: true, 
+          opacity: 0.85 
+        });
+        const baseRing = new THREE.Mesh(baseRingGeo, baseRingMat);
+        baseRing.position.set(0, 0, 0.02);
+        baseRing.name = "baseRing";
+        anchor.group.add(baseRing);
+
+        // 2. Add synchronous 3D Placeholder Cube so 3D graphics appear INSTANTLY
+        const cubeGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+        const cubeMat = new THREE.MeshStandardMaterial({ 
+          color: 0x8b5cf6, 
+          roughness: 0.3, 
+          metalness: 0.8 
+        });
+        const placeholderCube = new THREE.Mesh(cubeGeo, cubeMat);
+        placeholderCube.position.set(0, 0, 0.25);
+        placeholderCube.name = "placeholderCube";
+        anchor.group.add(placeholderCube);
 
         const loader = new GLTFLoader();
         const mixers: THREE.AnimationMixer[] = [];
@@ -89,8 +114,11 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
             m.file_url,
             (gltf) => {
               console.log("📦 Berhasil memuat GLTF model:", m.file_url);
+              // Hide placeholder cube once real GLTF model finishes loading
+              placeholderCube.visible = false;
+              
               const obj = gltf.scene;
-
+              
               // Store metadata on the THREE object for raycasting click detection
               obj.userData = { modelData: m };
               obj.traverse((child) => {
@@ -99,14 +127,14 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
                   child.frustumCulled = false; // Prevent frustum culling from hiding mesh
                 }
               });
-
+              
               // Calculate geometry bounding box and center point
               const box = new THREE.Box3().setFromObject(obj);
               const center = new THREE.Vector3();
               box.getCenter(center);
               const size = new THREE.Vector3();
               box.getSize(size);
-
+              
               // Center the inner geometry so its center is exactly at origin (0,0,0)
               obj.position.sub(center);
 
@@ -134,7 +162,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
 
               const posX = Math.abs(rawX) > 1.5 ? 0 : rawX;
               const posY = Math.abs(rawY) > 1.5 ? 0 : rawY;
-              const posZ = Math.abs(rawZ) > 1.5 ? 0.1 : (rawZ + 0.1);
+              const posZ = Math.abs(rawZ) > 1.5 ? 0.2 : (rawZ + 0.2);
 
               console.log(`📍 Model ${m.name || ''} diletakkan di koordinat AR: (${posX}, ${posY}, ${posZ}) dengan skala: ${scaleX * autoScale}`);
 
@@ -203,6 +231,10 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         scene.onBeforeRender = () => {
           const delta = clock.getDelta();
           mixers.forEach(mixer => mixer.update(delta));
+          if (placeholderCube && placeholderCube.visible) {
+            placeholderCube.rotation.x += 0.02;
+            placeholderCube.rotation.y += 0.03;
+          }
         };
 
         await mindarThree.start();
