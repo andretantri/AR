@@ -133,18 +133,6 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
               const container = new THREE.Group();
               container.add(obj);
 
-              const maxDim = Math.max(size.x, size.y, size.z);
-              let autoScale = 1;
-              if (Number.isFinite(maxDim) && maxDim > 0) {
-                // Normalize model size to ~1.0 unit if it is too huge (> 1.5) or tiny (< 0.1)
-                if (maxDim > 1.5 || maxDim < 0.1) {
-                  autoScale = 1.0 / maxDim;
-                }
-              }
-              if (!Number.isFinite(autoScale) || autoScale <= 0) {
-                autoScale = 1;
-              }
-
               const numScaleX = Number(m.scale_x);
               const numScaleY = Number(m.scale_y);
               const numScaleZ = Number(m.scale_z);
@@ -162,19 +150,15 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
               const posY = Math.abs(rawY) > 1.5 ? 0 : rawY;
               const posZ = Math.abs(rawZ) > 1.5 ? 0.2 : (rawZ + 0.2);
 
-              console.log(`📍 Model ${m.name || ''} diletakkan di koordinat AR: (${posX}, ${posY}, ${posZ}) dengan skala: ${scaleX * autoScale}`);
+              console.log(`📍 Model ${m.name || ''} diletakkan di koordinat AR: (${posX}, ${posY}, ${posZ}) dengan skala: (${scaleX}, ${scaleY}, ${scaleZ})`);
 
               container.position.set(posX, posY, posZ);
               container.rotation.set(
-                THREE.MathUtils.degToRad(Number(m.rotation_x) || 0) + Math.PI / 2,
+                THREE.MathUtils.degToRad(Number(m.rotation_x) || 0),
                 THREE.MathUtils.degToRad(Number(m.rotation_y) || 0),
                 THREE.MathUtils.degToRad(Number(m.rotation_z) || 0)
               );
-              container.scale.set(
-                scaleX * autoScale,
-                scaleY * autoScale,
-                scaleZ * autoScale
-              );
+              container.scale.set(scaleX, scaleY, scaleZ);
 
               anchor.group.add(container);
 
