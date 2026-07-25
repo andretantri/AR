@@ -247,18 +247,21 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         const domElement = renderer.domElement;
         domElement.addEventListener('click', handlePointerDown);
 
-        // Use scene.onBeforeRender so mixers update automatically before MindAR renders each frame
-        scene.onBeforeRender = () => {
+        await mindarThree.start();
+        if (isMounted) setIsStarting(false);
+
+        // Mandatory Official MindAR Three.js Animation Render Loop
+        renderer.setAnimationLoop(() => {
           const delta = clock.getDelta();
           mixers.forEach(mixer => mixer.update(delta));
+
           if (placeholderCube && placeholderCube.visible) {
             placeholderCube.rotation.x += 0.02;
             placeholderCube.rotation.y += 0.03;
           }
-        };
 
-        await mindarThree.start();
-        if (isMounted) setIsStarting(false);
+          renderer.render(scene, camera);
+        });
 
       } catch (err: any) {
         console.error("Gagal memulai AR", err);
