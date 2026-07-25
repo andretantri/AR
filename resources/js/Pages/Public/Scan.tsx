@@ -102,17 +102,20 @@ function Scan() {
     }
   };
 
-  const stopScanner = () => {
+  const stopScanner = async () => {
     if (scannerRef.current && scannerRef.current.isScanning) {
-      scannerRef.current.stop().then(() => {
+      try {
+        await scannerRef.current.stop();
         scannerRef.current?.clear();
-      }).catch(console.error);
+      } catch (err) {
+        console.error(err);
+      }
     }
     setScanning(false);
   };
 
-  const handleScan = (text: string) => {
-    stopScanner();
+  const handleScan = async (text: string) => {
+    await stopScanner();
     
     // Check if it's a valid URL pointing to our app
     try {
