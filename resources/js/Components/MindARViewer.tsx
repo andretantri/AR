@@ -80,25 +80,24 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           if (isMounted) setTargetFound(false);
         };
 
-        // 1. Add synchronous 3D Emerald Target Ring on the target plane
-        const baseRingGeo = new THREE.RingGeometry(0.35, 0.45, 32);
-        const baseRingMat = new THREE.MeshBasicMaterial({ 
-          color: 0x10b981, 
+        // 1. Add synchronous 3D Cyan Target Overlay Plane (MeshBasicMaterial ignores lights & renders 100% bright cyan)
+        const planeGeo = new THREE.PlaneGeometry(1, 1);
+        const planeMat = new THREE.MeshBasicMaterial({ 
+          color: 0x00ffff, 
           side: THREE.DoubleSide, 
           transparent: true, 
-          opacity: 0.85 
+          opacity: 0.65 
         });
-        const baseRing = new THREE.Mesh(baseRingGeo, baseRingMat);
-        baseRing.position.set(0, 0, 0.02);
-        baseRing.name = "baseRing";
-        anchor.group.add(baseRing);
+        const cyanPlane = new THREE.Mesh(planeGeo, planeMat);
+        cyanPlane.position.set(0, 0, 0.01);
+        cyanPlane.name = "cyanPlane";
+        anchor.group.add(cyanPlane);
 
-        // 2. Add synchronous 3D Placeholder Cube so 3D graphics appear INSTANTLY
-        const cubeGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3);
-        const cubeMat = new THREE.MeshStandardMaterial({ 
-          color: 0x8b5cf6, 
-          roughness: 0.3, 
-          metalness: 0.8 
+        // 2. Add synchronous 3D Red Cube (MeshBasicMaterial guarantees bright red visibility)
+        const cubeGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+        const cubeMat = new THREE.MeshBasicMaterial({ 
+          color: 0xff0055,
+          wireframe: false
         });
         const placeholderCube = new THREE.Mesh(cubeGeo, cubeMat);
         placeholderCube.position.set(0, 0, 0.25);
@@ -332,7 +331,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           z-index: 1 !important;
         }
         #mindar-container canvas {
-          z-index: 2 !important;
+          z-index: 10 !important;
           background: transparent !important;
           background-color: transparent !important;
           pointer-events: auto !important;
