@@ -29,8 +29,8 @@ function CategoryForm({ initial, onSubmit, onCancel, processing }: {
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <Label>Emoji Icon</Label>
-          <Input value={icon} onChange={e => setIcon(e.target.value)} className="mt-1.5 text-center text-xl" maxLength={2} />
+          <Label>Emoji / Icon Class</Label>
+          <Input value={icon} onChange={e => setIcon(e.target.value)} className="mt-1.5 text-center text-xl" />
         </div>
         <div className="col-span-2">
           <Label>Nama Kategori *</Label>
