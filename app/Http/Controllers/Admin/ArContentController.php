@@ -55,7 +55,7 @@ class ArContentController extends Controller
             'ar_category_id' => 'nullable|exists:ar_categories,id',
             'is_active' => 'boolean',
             'thumbnail' => 'nullable|image|max:5120',
-            'tracking_mode' => 'nullable|string|in:disabled,image,marker',
+            'tracking_mode' => 'nullable|string|in:disabled,image,marker,qrcode',
             'mind_file' => 'nullable|file',
         ]);
 
@@ -104,7 +104,7 @@ class ArContentController extends Controller
             'ar_category_id' => 'nullable|exists:ar_categories,id',
             'is_active' => 'boolean',
             'thumbnail' => 'nullable|image|max:5120',
-            'tracking_mode' => 'nullable|string|in:disabled,image,marker',
+            'tracking_mode' => 'nullable|string|in:disabled,image,marker,qrcode',
             'mind_file' => 'nullable|file',
         ]);
 

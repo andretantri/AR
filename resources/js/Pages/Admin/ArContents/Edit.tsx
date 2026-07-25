@@ -137,21 +137,32 @@ export default function ArContentsEdit({ content, categories }: Props) {
     <AdminLayout>
       <Head title={`Edit: ${content.title}`} />
 
-      <div className="flex items-center gap-4 mb-8">
-        <Link href="/admin/ar-contents">
-          <Button variant="ghost" size="icon" className="rounded-xl">
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-3xl font-black text-slate-800"><i className="fa-solid fa-pencil"></i> Edit Konten AR</h1>
-          <p className="text-slate-500 font-medium mt-1 truncate max-w-md">{content.title}</p>
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <Link href="/admin/ar-contents">
+            <Button variant="ghost" size="icon" className="rounded-xl">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-black text-slate-800"><i className="fa-solid fa-pencil"></i> Edit Konten AR</h1>
+            <p className="text-slate-500 font-medium mt-1 truncate max-w-md">{content.title}</p>
+          </div>
         </div>
+        <Button type="submit" form="edit-form" disabled={processing || isCompiling} className="gap-2 shadow-lg hover:-translate-y-0.5 transition-all" size="lg">
+          {isCompiling ? (
+            <><RefreshCw className="w-5 h-5 animate-spin" /> Memproses ({compileProgress}%)</>
+          ) : processing ? (
+            'Menyimpan...'
+          ) : (
+            <><Upload className="w-5 h-5" /> Simpan Perubahan</>
+          )}
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <form onSubmit={handleSubmit}>
+          <form id="edit-form" onSubmit={handleSubmit}>
             <Card className="border-0 shadow-md">
               <CardHeader><CardTitle className="text-slate-800">Informasi Konten</CardTitle></CardHeader>
               <CardContent className="space-y-4">
@@ -171,15 +182,6 @@ export default function ArContentsEdit({ content, categories }: Props) {
                     {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
                   </Select>
                 </div>
-                <Button type="submit" disabled={processing || isCompiling} className="w-full gap-2 mt-2" size="lg">
-                  {isCompiling ? (
-                    <><RefreshCw className="w-5 h-5 animate-spin" /> Memproses AR Target ({compileProgress}%)</>
-                  ) : processing ? (
-                    'Menyimpan...'
-                  ) : (
-                    <><Upload className="w-5 h-5" /> Simpan Perubahan</>
-                  )}
-                </Button>
               </CardContent>
             </Card>
           </form>
