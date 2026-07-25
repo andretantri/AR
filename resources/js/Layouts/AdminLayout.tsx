@@ -12,6 +12,7 @@ const navItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/ar-contents', label: 'Konten AR', icon: Boxes },
   { href: '/admin/categories', label: 'Kategori', icon: FolderOpen },
+  { href: '/admin/users', label: 'Pengguna', icon: User },
   { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
 ];
 

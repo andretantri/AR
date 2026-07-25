@@ -38,6 +38,8 @@ Route::middleware(['auth', 'verified'])
         Route::resource('categories', CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::resource('users', \App\Http\Controllers\Admin\UserController::class)->only(['index']);
+        Route::put('users/{user}/reset-password', [\App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset-password');
     });
 
 require __DIR__.'/auth.php';
