@@ -15,6 +15,16 @@
         <!-- FontAwesome -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+        <!-- Import map for Three.js (needed by MindAR CDN) -->
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r147/three.module.js",
+                    "three/addons/": "https://unpkg.com/three@0.147.0/examples/jsm/"
+                }
+            }
+        </script>
+
         <!-- Model Viewer for AR (GLB/GLTF support) -->
         <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
 
