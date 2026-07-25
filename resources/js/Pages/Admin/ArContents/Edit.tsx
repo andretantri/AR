@@ -62,20 +62,10 @@ export default function ArContentsEdit({ content, categories }: Props) {
         : (isMarkerMode || isQRCodeMode);  // Always compile for marker/qrcode
 
       if (needsCompile) {
-        // Load MINDAR if not already loaded
+        // Check MINDAR is available (loaded globally via app.blade.php)
         if (!(window as any).MINDAR?.IMAGE?.Compiler) {
-          try {
-            await new Promise<void>((resolve, reject) => {
-              const script = document.createElement('script');
-              script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js';
-              script.onload = () => resolve();
-              script.onerror = () => reject(new Error('Gagal memuat MINDAR'));
-              document.head.appendChild(script);
-            });
-          } catch {
-            alert('Gagal memuat library AR. Pastikan koneksi internet aktif.');
-            return;
-          }
+          alert('Library AR belum siap. Coba refresh halaman ini dan tunggu beberapa detik.');
+          return;
         }
 
         setIsCompiling(true);
