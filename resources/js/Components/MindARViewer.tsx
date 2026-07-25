@@ -63,6 +63,9 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         const anchor = mindarThree.addAnchor(0);
         const loader = new GLTFLoader();
         
+        const mixers: THREE.AnimationMixer[] = [];
+        const clock = new THREE.Clock();
+
         models.forEach(m => {
           loader.load(m.file_url, (gltf) => {
             const obj = gltf.scene;
@@ -74,6 +77,15 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
             );
             obj.scale.set(m.scale_x, m.scale_y, m.scale_z);
             anchor.group.add(obj);
+
+            // Play animation if available
+            if (gltf.animations && gltf.animations.length > 0) {
+              const mixer = new THREE.AnimationMixer(obj);
+              gltf.animations.forEach((clip) => {
+                mixer.clipAction(clip).play();
+              });
+              mixers.push(mixer);
+            }
           });
         });
 
@@ -82,6 +94,8 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         
         // Setup render loop manually because MindAR doesn't automatically loop in custom integration
         renderer.setAnimationLoop(() => {
+          const delta = clock.getDelta();
+          mixers.forEach(mixer => mixer.update(delta));
           renderer.render(scene, camera);
         });
 
@@ -121,7 +135,14 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
       )}
 
       {/* MindAR will inject the video and canvas elements here */}
-      <div ref={containerRef} className="absolute inset-0 z-0 isolate" />
+      <style>{`
+        #mindar-container video, #mindar-container canvas {
+          object-fit: cover !important;
+          width: 100vw !important;
+          height: 100vh !important;
+        }
+      `}</style>
+      <div id="mindar-container" ref={containerRef} className="absolute inset-0 z-0 isolate" />
       
       {/* Overlay Instructions */}
       {!isStarting && !error && (
