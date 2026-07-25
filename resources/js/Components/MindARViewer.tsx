@@ -81,40 +81,54 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           loader.load(
             m.file_url,
             (gltf) => {
+              console.log("📦 Berhasil memuat GLTF model:", m.file_url);
               const obj = gltf.scene;
               
               // Store metadata on the THREE object for raycasting click detection
               obj.userData = { modelData: m };
               obj.traverse((child) => {
                 child.userData = { modelData: m };
+                if ((child as THREE.Mesh).isMesh) {
+                  child.frustumCulled = false; // Prevent frustum culling from hiding mesh
+                }
               });
               
-              // Calculate geometry size to prevent tiny or gigantic models from being invisible
+              // Calculate geometry bounding box and center point
               const box = new THREE.Box3().setFromObject(obj);
+              const center = new THREE.Vector3();
+              box.getCenter(center);
               const size = new THREE.Vector3();
               box.getSize(size);
-              const maxDim = Math.max(size.x, size.y, size.z);
               
+              // Center the inner geometry so its center is exactly at origin (0,0,0)
+              obj.position.sub(center);
+
+              // Container group for transformation
+              const container = new THREE.Group();
+              container.add(obj);
+
+              const maxDim = Math.max(size.x, size.y, size.z);
               let autoScale = 1;
               if (maxDim > 0) {
-                if (maxDim > 2.5 || maxDim < 0.2) {
+                // Normalize model size to ~1.0 unit if it is too huge (> 1.5) or tiny (< 0.1)
+                if (maxDim > 1.5 || maxDim < 0.1) {
                   autoScale = 1.0 / maxDim;
                 }
               }
 
-              obj.position.set(m.position_x, m.position_y, m.position_z);
-              obj.rotation.set(
+              container.position.set(m.position_x, m.position_y, m.position_z);
+              container.rotation.set(
                 THREE.MathUtils.degToRad(m.rotation_x),
                 THREE.MathUtils.degToRad(m.rotation_y),
                 THREE.MathUtils.degToRad(m.rotation_z)
               );
-              obj.scale.set(
+              container.scale.set(
                 m.scale_x * autoScale,
                 m.scale_y * autoScale,
                 m.scale_z * autoScale
               );
               
-              anchor.group.add(obj);
+              anchor.group.add(container);
 
               // Play animation if available
               if (gltf.animations && gltf.animations.length > 0) {
@@ -127,7 +141,10 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
             },
             undefined,
             (err) => {
-              console.error("Gagal memuat GLTF model:", m.file_url, err);
+              console.error("❌ Gagal memuat file 3D:", m.file_url, err);
+              if (isMounted) {
+                setError(`Gagal memuat file 3D (${m.name || 'Model'}): Periksa koneksi atau berkas di server.`);
+              }
             }
           );
         });

@@ -100,7 +100,7 @@ export default function ArViewer({ content, related }: Props) {
       <div className="fixed inset-0 z-50 bg-black font-nunito">
         <Head title={`${content.title} - AR Camera`} />
         
-        <MindARViewer mindFileUrl={content.mind_file_url} models={glbModels} />
+        <MindARViewer mindFileUrl={content.mind_file_url} models={glbModels.length > 0 ? glbModels : content.models} />
         
         {/* Top Controls */}
         <div className="absolute top-4 inset-x-4 z-50 flex justify-between items-start pointer-events-none">
