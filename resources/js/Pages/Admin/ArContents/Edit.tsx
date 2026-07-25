@@ -63,11 +63,11 @@ export default function ArContentsEdit({ content, categories }: Props) {
 
       if (needsCompile) {
         // Load MINDAR if not already loaded
-        if (!(window as any).MINDAR) {
+        if (!(window as any).MINDAR?.IMAGE?.Compiler) {
           try {
             await new Promise<void>((resolve, reject) => {
               const script = document.createElement('script');
-              script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js';
+              script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js';
               script.onload = () => resolve();
               script.onerror = () => reject(new Error('Gagal memuat MINDAR'));
               document.head.appendChild(script);
