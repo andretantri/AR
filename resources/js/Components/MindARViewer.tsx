@@ -5,6 +5,8 @@ import { Camera } from 'lucide-react';
 import { MindARThree } from 'mind-ar/dist/mindar-image-three.prod.js';
 
 interface ArModel {
+  name?: string;
+  description?: string | null;
   file_url: string;
   position_x: number; position_y: number; position_z: number;
   rotation_x: number; rotation_y: number; rotation_z: number;
@@ -20,7 +22,10 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isStarting, setIsStarting] = useState(true);
   const [targetFound, setTargetFound] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<ArModel | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const anchorRef = useRef<any>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -44,19 +49,20 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         const { renderer, scene, camera } = mindarThree;
         
         // Add strong lights so models with PBR materials are bright & visible
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.8);
         scene.add(ambientLight);
         
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
         dirLight.position.set(5, 10, 7.5);
         scene.add(dirLight);
 
-        const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.8);
+        const dirLight2 = new THREE.DirectionalLight(0xffffff, 1.0);
         dirLight2.position.set(-5, -5, -5);
         scene.add(dirLight2);
 
         // Load models and attach to anchor 0 (the first/only image in the mind file)
         const anchor = mindarThree.addAnchor(0);
+        anchorRef.current = anchor;
         
         anchor.onTargetFound = () => {
           console.log("🎯 AR Target Terdeteksi!");
@@ -77,6 +83,12 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
             (gltf) => {
               const obj = gltf.scene;
               
+              // Store metadata on the THREE object for raycasting click detection
+              obj.userData = { modelData: m };
+              obj.traverse((child) => {
+                child.userData = { modelData: m };
+              });
+              
               // Calculate geometry size to prevent tiny or gigantic models from being invisible
               const box = new THREE.Box3().setFromObject(obj);
               const size = new THREE.Vector3();
@@ -85,7 +97,6 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
               
               let autoScale = 1;
               if (maxDim > 0) {
-                // If model max dimension is huge (> 2.5) or tiny (< 0.2), normalize to ~1.0 unit
                 if (maxDim > 2.5 || maxDim < 0.2) {
                   autoScale = 1.0 / maxDim;
                 }
@@ -120,6 +131,34 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
             }
           );
         });
+
+        // Click / Touch Raycaster listener for selecting 3D models interactively
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+          if (!containerRef.current || !anchor.group.visible) return;
+          const rect = containerRef.current.getBoundingClientRect();
+          const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+          const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
+
+          mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+          mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+          raycaster.setFromCamera(mouse, camera);
+          const intersects = raycaster.intersectObjects(anchor.group.children, true);
+
+          if (intersects.length > 0) {
+            const hitObj = intersects[0].object;
+            const modelData = hitObj.userData?.modelData;
+            if (modelData && isMounted) {
+              setSelectedModel(modelData);
+            }
+          }
+        };
+
+        const domElement = renderer.domElement;
+        domElement.addEventListener('click', handlePointerDown);
 
         // Use scene.onBeforeRender so mixers update automatically before MindAR renders each frame
         scene.onBeforeRender = () => {
@@ -156,8 +195,34 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
     };
   }, [mindFileUrl, models]);
 
+  // Touch Swipe Gesture to Rotate Model in 3D Space
+  const touchStartRef = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      touchStartRef.current = e.touches[0].clientX;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartRef.current !== null && anchorRef.current?.group && e.touches.length === 1) {
+      const deltaX = e.touches[0].clientX - touchStartRef.current;
+      anchorRef.current.group.rotation.y += deltaX * 0.01;
+      touchStartRef.current = e.touches[0].clientX;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchStartRef.current = null;
+  };
+
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div 
+      className="relative w-full h-screen overflow-hidden select-none"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {isStarting && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm text-white">
           <Camera className="w-12 h-12 mb-4 animate-pulse text-violet-400" />
@@ -188,19 +253,42 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
       `}</style>
       <div id="mindar-container" ref={containerRef} className="absolute inset-0 z-0 isolate bg-black" />
       
+      {/* Selected Model Detail Modal Overlay */}
+      {selectedModel && (
+        <div className="absolute top-20 inset-x-4 z-40 bg-white/95 backdrop-blur-xl p-5 rounded-3xl shadow-2xl border border-white/20 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <span className="px-2.5 py-1 rounded-full bg-violet-100 text-violet-700 font-extrabold text-[10px] uppercase tracking-wider">
+                Model 3D Terpilih
+              </span>
+              <h3 className="font-black text-slate-800 text-lg mt-1">{selectedModel.name || 'Model 3D'}</h3>
+              <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">
+                {selectedModel.description || 'Tidak ada deskripsi tambahan untuk objek ini.'}
+              </p>
+            </div>
+            <button 
+              onClick={() => setSelectedModel(null)}
+              className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-sm hover:bg-slate-200 transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Overlay Status Instructions */}
       {!isStarting && !error && (
         <div className="absolute bottom-6 inset-x-0 flex justify-center z-10 pointer-events-none">
           <div className={`px-6 py-3 rounded-full border backdrop-blur-md text-center shadow-2xl transition-all duration-300 ${
             targetFound 
-              ? 'bg-emerald-600/90 border-emerald-400/50 text-white animate-bounce' 
+              ? 'bg-emerald-600/90 border-emerald-400/50 text-white animate-bounce pointer-events-auto' 
               : 'bg-black/70 border-white/20 text-white/90'
           }`}>
             <p className="text-sm font-black flex items-center gap-2">
               {targetFound ? (
-                <>✨ Target Terdeteksi! Objek 3D Ditampilkan</>
+                <>✨ Target Terdeteksi! Putar & Sentuh Objek 3D</>
               ) : (
-                <>🔍 Arahkan kamera ke Gambar Target yang Terang</>
+                <>🔍 Arahkan kamera ke Gambar Thumbnail Target</>
               )}
             </p>
           </div>
