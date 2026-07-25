@@ -80,27 +80,29 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           if (isMounted) setTargetFound(false);
         };
 
-        // 1. Add synchronous 3D Cyan Target Overlay Plane (MeshBasicMaterial ignores lights & renders 100% bright cyan)
-        const planeGeo = new THREE.PlaneGeometry(1, 1);
+        // 1. Add synchronous 3D Cyan Target Overlay Plane (MeshBasicMaterial + depthTest: false guarantees 100% visibility)
+        const planeGeo = new THREE.PlaneGeometry(1.2, 1.2);
         const planeMat = new THREE.MeshBasicMaterial({ 
           color: 0x00ffff, 
           side: THREE.DoubleSide, 
           transparent: true, 
-          opacity: 0.65 
+          opacity: 0.75,
+          depthTest: false
         });
         const cyanPlane = new THREE.Mesh(planeGeo, planeMat);
-        cyanPlane.position.set(0, 0, 0.01);
+        cyanPlane.position.set(0, 0, 0.05);
         cyanPlane.name = "cyanPlane";
         anchor.group.add(cyanPlane);
 
-        // 2. Add synchronous 3D Red Cube (MeshBasicMaterial guarantees bright red visibility)
+        // 2. Add synchronous 3D Red Cube (MeshBasicMaterial + depthTest: false guarantees 100% visibility)
         const cubeGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
         const cubeMat = new THREE.MeshBasicMaterial({ 
           color: 0xff0055,
-          wireframe: false
+          side: THREE.DoubleSide,
+          depthTest: false
         });
         const placeholderCube = new THREE.Mesh(cubeGeo, cubeMat);
-        placeholderCube.position.set(0, 0, 0.25);
+        placeholderCube.position.set(0, 0, 0.3);
         placeholderCube.name = "placeholderCube";
         anchor.group.add(placeholderCube);
 
@@ -123,7 +125,19 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
               obj.traverse((child) => {
                 child.userData = { modelData: m };
                 if ((child as THREE.Mesh).isMesh) {
-                  child.frustumCulled = false; // Prevent frustum culling from hiding mesh
+                  const mesh = child as THREE.Mesh;
+                  mesh.frustumCulled = false; // Prevent frustum culling from hiding mesh
+                  if (mesh.material) {
+                    if (Array.isArray(mesh.material)) {
+                      mesh.material.forEach(mat => {
+                        mat.side = THREE.DoubleSide; // Render both front & back faces!
+                        mat.needsUpdate = true;
+                      });
+                    } else {
+                      mesh.material.side = THREE.DoubleSide; // Render both front & back faces!
+                      mesh.material.needsUpdate = true;
+                    }
+                  }
                 }
               });
               
@@ -282,6 +296,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault(); // Stop mobile browser pull-to-refresh reload!
     if (touchStartRef.current !== null && anchorRef.current?.group && e.touches.length === 1) {
       const deltaX = e.touches[0].clientX - touchStartRef.current;
       anchorRef.current.group.rotation.y += deltaX * 0.01;
@@ -295,10 +310,11 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
 
   return (
     <div
-      className="relative w-full h-screen overflow-hidden select-none"
+      className="relative w-full h-screen overflow-hidden select-none touch-none overscroll-none"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      style={{ overscrollBehavior: 'none', touchAction: 'none' }}
     >
       {isStarting && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-sm text-white">
@@ -317,6 +333,11 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
 
       {/* MindAR will inject the video and canvas elements here */}
       <style>{`
+        html, body {
+          overscroll-behavior: none !important;
+          overscroll-behavior-y: none !important;
+          touch-action: none !important;
+        }
         #mindar-container video, #mindar-container canvas {
           position: absolute !important;
           top: 0 !important;
@@ -326,6 +347,8 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           object-fit: cover !important;
           margin: 0 !important;
           padding: 0 !important;
+          overscroll-behavior: none !important;
+          touch-action: none !important;
         }
         #mindar-container video {
           z-index: 1 !important;
