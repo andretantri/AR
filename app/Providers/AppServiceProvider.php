@@ -23,5 +23,9 @@ class AppServiceProvider extends ServiceProvider
         Vite::prefetch(concurrency: 3);
         ini_set('upload_max_filesize', '100M');
         ini_set('post_max_size', '200M');
+
+        if (config('app.env') === 'production') {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     }
 }
