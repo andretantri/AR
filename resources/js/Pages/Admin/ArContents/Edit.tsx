@@ -49,7 +49,7 @@ export default function ArContentsEdit({ content, categories }: Props) {
       if (!existing) {
         const script = document.createElement('script');
         script.type = 'module';
-        script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js';
+        script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js';
         script.setAttribute('data-mindar', '1');
         script.onload = () => setMindARReady(true);
         document.head.appendChild(script);
