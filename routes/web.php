@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [ArViewerController::class, 'index'])->name('home');
 Route::get('/scan', [ArViewerController::class, 'scan'])->name('scan');
 Route::get('/ar/{arContent}', [ArViewerController::class, 'show'])->name('ar.show');
-Route::get('/ar/{arContent}/play', [ArViewerController::class, 'play'])->name('ar.play');
 
 // Auth routes from Breeze
 Route::get('/dashboard', function () {

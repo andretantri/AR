@@ -175,12 +175,6 @@ export default function ArViewer({ content, related }: Props) {
                       <p className="text-[10px] text-slate-500 font-bold mt-1">Klik pada model untuk info</p>
                     </div>
                     
-                    {/* MindAR Camera Button */}
-                    <a href={`/ar/${content.id}/play`}
-                      className="absolute bottom-4 right-4 bg-emerald-600 text-white font-black px-5 py-3 rounded-xl flex items-center gap-2 shadow-xl shadow-emerald-500/40 hover:bg-emerald-700 transition-colors text-sm z-10">
-                      <i className="fa-solid fa-camera"></i>
-                      Buka Kamera AR
-                    </a>
                   </div>
                 ) : hasPblr ? (
                   <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-violet-950 to-indigo-950 flex flex-col items-center justify-center py-16 px-8 text-center" style={{ minHeight: '400px' }}>

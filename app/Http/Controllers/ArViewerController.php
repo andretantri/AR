@@ -82,16 +82,4 @@ class ArViewerController extends Controller
             'related' => $related,
         ]);
     }
-    public function play(ArContent $arContent)
-    {
-        abort_if(!$arContent->is_active, 404);
-        $arContent->load('models');
-        
-        $hasGlb = $arContent->models->contains(fn($m) => in_array(strtolower($m->file_type), ['glb', 'gltf']));
-        abort_if(!$hasGlb, 400, 'Tidak ada model 3D (glb/gltf) yang ditemukan untuk AR Kamera.');
-
-        return view('ar.play', [
-            'content' => $arContent,
-        ]);
-    }
 }
