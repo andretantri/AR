@@ -154,7 +154,7 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
 
               container.position.set(posX, posY, posZ);
               container.rotation.set(
-                THREE.MathUtils.degToRad(Number(m.rotation_x) || 0),
+                THREE.MathUtils.degToRad(Number(m.rotation_x) || 0) + Math.PI / 2,
                 THREE.MathUtils.degToRad(Number(m.rotation_y) || 0),
                 THREE.MathUtils.degToRad(Number(m.rotation_z) || 0)
               );

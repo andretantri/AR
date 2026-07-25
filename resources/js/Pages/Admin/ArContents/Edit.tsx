@@ -218,7 +218,7 @@ export default function ArContentsEdit({ content, categories }: Props) {
             </Card>
           </form>
 
-          <ModelManager contentId={content.id} models={content.models} />
+          <ModelManager contentId={content.id} models={content.models} thumbnailUrl={content.thumbnail_url} />
         </div>
 
         <div className="space-y-6">
@@ -415,7 +415,7 @@ function ModelListItem({ m, contentId }: { m: ArModel; contentId: number }) {
   );
 }
 
-function ModelManager({ contentId, models }: { contentId: number, models: ArModel[] }) {
+function ModelManager({ contentId, models, thumbnailUrl }: { contentId: number, models: ArModel[], thumbnailUrl?: string | null }) {
   const [isVisualEditorOpen, setIsVisualEditorOpen] = useState(false);
 
   const { data, setData, post, processing, reset, errors } = useForm({
@@ -441,7 +441,12 @@ function ModelManager({ contentId, models }: { contentId: number, models: ArMode
   return (
     <Card className="border-0 shadow-md mt-6">
       {isVisualEditorOpen && (
-        <VisualEditor contentId={contentId} initialModels={models} onClose={() => setIsVisualEditorOpen(false)} />
+        <VisualEditor 
+          contentId={contentId} 
+          initialModels={models} 
+          thumbnailUrl={thumbnailUrl}
+          onClose={() => setIsVisualEditorOpen(false)} 
+        />
       )}
       <CardHeader>
         <div className="flex items-center justify-between">

@@ -2,7 +2,7 @@ import React, { useState, Suspense, useRef, useEffect, useCallback } from 'react
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Grid, Environment, Html, TransformControls } from '@react-three/drei';
 import { Button } from '@/Components/ui/button';
-import { X, Save, BoxSelect, Hand, Move, RotateCw, Maximize2, ChevronRight } from 'lucide-react';
+import { X, Save, BoxSelect, Hand, Move, RotateCw, Maximize2, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { router } from '@inertiajs/react';
 import * as THREE from 'three';
 
@@ -24,10 +24,39 @@ interface ArModel {
 interface VisualEditorProps {
   contentId: number;
   initialModels: ArModel[];
+  thumbnailUrl?: string | null;
   onClose: () => void;
 }
 
 type TransformMode = 'translate' | 'rotate' | 'scale';
+
+// TargetImagePlane — Renders the scan target card image under the 3D models as a guide plane
+function TargetImagePlane({ url }: { url?: string | null }) {
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    if (!url) return;
+    const loader = new THREE.TextureLoader();
+    loader.load(
+      url,
+      (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        setTexture(tex);
+      },
+      undefined,
+      (err) => console.warn('Gagal memuat thumbnail target:', err)
+    );
+  }, [url]);
+
+  if (!texture) return null;
+
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
+      <planeGeometry args={[3, 3]} />
+      <meshBasicMaterial map={texture} side={THREE.DoubleSide} transparent opacity={0.9} />
+    </mesh>
+  );
+}
 
 // Using drei's TransformControls natively in the scene
 
@@ -153,10 +182,11 @@ function CoordInput({ axis, value, onChange, color }: {
 // -----------------------------------------------------------------------
 // Main VisualEditor component
 // -----------------------------------------------------------------------
-export default function VisualEditor({ contentId, initialModels, onClose }: VisualEditorProps) {
+export default function VisualEditor({ contentId, initialModels, thumbnailUrl, onClose }: VisualEditorProps) {
   const [models, setModels] = useState<ArModel[]>(initialModels.map(m => ({ ...m })));
   const [selectedId, setSelectedId] = useState<number | null>(initialModels[0]?.id ?? null);
   const [mode, setMode] = useState<TransformMode>('translate');
+  const [showTargetCard, setShowTargetCard] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   // Called when user drags in canvas
@@ -228,6 +258,19 @@ export default function VisualEditor({ contentId, initialModels, onClose }: Visu
                 </button>
               ))}
             </div>
+            {thumbnailUrl && (
+              <button
+                type="button"
+                onClick={() => setShowTargetCard(prev => !prev)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all border ${
+                  showTargetCard 
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm' 
+                    : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
+                }`}
+              >
+                <ImageIcon className="w-3.5 h-3.5" /> Gambar Target: {showTargetCard ? 'Tampil' : 'Sembunyi'}
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={onClose} disabled={isSaving} className="gap-2">
@@ -356,6 +399,7 @@ export default function VisualEditor({ contentId, initialModels, onClose }: Visu
               <Environment preset="city" />
 
               <Suspense fallback={null}>
+                {showTargetCard && <TargetImagePlane url={thumbnailUrl} />}
                 {models.map(m => (
                   <SceneModel
                     key={m.id}
