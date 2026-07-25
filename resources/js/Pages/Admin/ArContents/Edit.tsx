@@ -8,6 +8,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import { Label } from '@/Components/ui/label';
 import { Select } from '@/Components/ui/select';
 import { QRCodeSVG } from 'qrcode.react';
+import { Compiler } from 'mind-ar/dist/mindar-image.prod.js';
 import { ArrowLeft, Upload, FileBox, Image, AlertCircle, CheckCircle, RefreshCw, BoxSelect, Download, QrCode } from 'lucide-react';
 import VisualEditor from './VisualEditor';
 
@@ -124,7 +125,7 @@ export default function ArContentsEdit({ content, categories }: Props) {
             targetImg = await loadImage(src);
           }
 
-          const compiler = new (window as any).MINDAR.IMAGE.Compiler();
+          const compiler = new Compiler();
           await compiler.compileImageTargets([targetImg], (progress: number) => {
             setCompileProgress(Math.round(progress));
           });

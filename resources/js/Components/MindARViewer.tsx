@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Camera } from 'lucide-react';
+import { MindARThree } from 'mind-ar/dist/mindar-image-three.prod.js';
 
 interface ArModel {
   file_url: string;
@@ -28,22 +29,8 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
     
     const init = async () => {
       try {
-        if (!(window as any).MINDAR) {
-            const script = document.createElement('script');
-            script.type = 'module';
-            script.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js';
-            document.head.appendChild(script);
-            await new Promise((resolve, reject) => {
-                script.onload = resolve;
-                script.onerror = reject;
-            });
-        }
-        if (!isMounted) return;
-
-        // CRITICAL: MindAR expects window.THREE to be set globally
         (window as any).THREE = THREE;
-
-        const { MindARThree } = (window as any).MINDAR.IMAGE;
+        if (!isMounted) return;
         
         mindarThree = new MindARThree({
           container: containerRef.current,

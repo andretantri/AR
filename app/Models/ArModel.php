@@ -27,7 +27,7 @@ class ArModel extends Model
 
     public function getFileUrlAttribute(): string
     {
-        return asset('storage/' . $this->file_path);
+        return \Illuminate\Support\Facades\Storage::url($this->file_path);
     }
     
     public function getFileSizeFormattedAttribute(): string

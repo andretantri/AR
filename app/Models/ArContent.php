@@ -38,11 +38,11 @@ class ArContent extends Model
 
     public function getThumbnailUrlAttribute(): ?string
     {
-        return $this->thumbnail_path ? asset('storage/' . $this->thumbnail_path) : null;
+        return $this->thumbnail_path ? \Illuminate\Support\Facades\Storage::url($this->thumbnail_path) : null;
     }
 
     public function getMindFileUrlAttribute(): ?string
     {
-        return $this->mind_file_path ? asset('storage/' . $this->mind_file_path) : null;
+        return $this->mind_file_path ? \Illuminate\Support\Facades\Storage::url($this->mind_file_path) : null;
     }
 }
