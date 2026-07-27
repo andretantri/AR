@@ -96,24 +96,11 @@ export default function ArViewer({ content, related }: Props) {
   const hasPblr = pblrModels.length > 0;
 
   if (isCameraMode && (content.mind_file_url || content.models.length > 0)) {
-    const activeMindUrl = content.mind_file_url;
     return (
       <div className="fixed inset-0 z-50 bg-black font-nunito">
         <Head title={`${content.title} - AR Camera`} />
         
-        {activeMindUrl ? (
-          <MindARViewer mindFileUrl={activeMindUrl} models={glbModels.length > 0 ? glbModels : content.models} />
-        ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-white p-6 text-center z-40">
-            <p className="font-bold text-lg mb-2">Berkas Target AR (.mind) Belum Diunggah di Server</p>
-            <p className="text-xs text-white/70 max-w-md mb-6 leading-relaxed">
-              Silakan buka Admin Panel untuk mengedit konten ini dan mengunggah berkas target .mind.
-            </p>
-            <button onClick={() => setIsCameraMode(false)} className="px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl shadow-xl transition-all">
-              Buka Mode 3D Studio
-            </button>
-          </div>
-        )}
+        <MindARViewer mindFileUrl={content.mind_file_url || ''} models={glbModels.length > 0 ? glbModels : content.models} />
         
         {/* Top Controls */}
         <div className="absolute top-4 inset-x-4 z-50 flex justify-between items-start pointer-events-none">

@@ -64,11 +64,19 @@ class ArViewerController extends Controller
 
         $arContent->load('models');
 
+        $mindFilePath = $arContent->mind_file_path;
+        if (!$mindFilePath) {
+            $fallbackContent = ArContent::whereNotNull('mind_file_path')->where('mind_file_path', '!=', '')->first();
+            if ($fallbackContent) {
+                $mindFilePath = $fallbackContent->mind_file_path;
+            }
+        }
+
         return Inertia::render('Public/ArViewer', [
             'content' => [
                 ...$arContent->toArray(),
                 'thumbnail_url' => $arContent->thumbnail_path ? asset('storage/' . $arContent->thumbnail_path) : null,
-                'mind_file_url' => $arContent->mind_file_path ? asset('storage/' . $arContent->mind_file_path) : null,
+                'mind_file_url' => $mindFilePath ? asset('storage/' . $mindFilePath) : null,
                 'models' => $arContent->models->map(fn($m) => [
                     ...$m->toArray(),
                     'file_url' => $m->file_path ? asset('storage/' . $m->file_path) : null,
