@@ -67,11 +67,11 @@ class ArViewerController extends Controller
         return Inertia::render('Public/ArViewer', [
             'content' => [
                 ...$arContent->toArray(),
-                'thumbnail_url' => $arContent->thumbnail_url,
-                'mind_file_url' => $arContent->mind_file_url,
+                'thumbnail_url' => $arContent->thumbnail_path ? asset('storage/' . $arContent->thumbnail_path) : null,
+                'mind_file_url' => $arContent->mind_file_path ? asset('storage/' . $arContent->mind_file_path) : null,
                 'models' => $arContent->models->map(fn($m) => [
                     ...$m->toArray(),
-                    'file_url' => $m->file_url,
+                    'file_url' => $m->file_path ? asset('storage/' . $m->file_path) : null,
                 ]),
                 'category' => $arContent->category ? [
                     'name' => $arContent->category->name,
