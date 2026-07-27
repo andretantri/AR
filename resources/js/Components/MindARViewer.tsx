@@ -111,9 +111,9 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         mindarThree = new MindARThree({
           container: containerRef.current,
           imageTargetSrc: mindFileUrl,
-          uiLoading: 'yes',
-          uiScanning: 'yes',
-          uiError: 'yes',
+          uiLoading: 'no',
+          uiScanning: 'no',
+          uiError: 'no',
           filterMinCF: 0.0001, // Smooth out jitter/wobble when target is still
           filterBeta: 1.0,      // Stabilize movement during camera pan
           missTolerance: 10,    // Keep tracking steady through micro camera shakes
@@ -434,12 +434,21 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         }
         #mindar-container video {
           z-index: 1 !important;
+          display: block !important;
+          opacity: 1 !important;
+          visibility: visible !important;
         }
         #mindar-container canvas {
           z-index: 10 !important;
           background: transparent !important;
           background-color: transparent !important;
           pointer-events: auto !important;
+        }
+        .mindar-ui-overlay, .mindar-ui-loading, .mindar-ui-scanning, .mindar-ui-error {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
         }
       `}</style>
       <div id="mindar-container" ref={containerRef} className="absolute inset-0 z-0 isolate bg-black" />
