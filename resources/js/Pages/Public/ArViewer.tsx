@@ -96,22 +96,12 @@ export default function ArViewer({ content, related }: Props) {
   const hasPblr = pblrModels.length > 0;
 
   if (isCameraMode && (content.mind_file_url || content.models.length > 0)) {
-    const activeMindUrl = content.mind_file_url || '';
+    const activeMindUrl = content.mind_file_url || '/storage/mind_files/6r9yA0lgXsBVOHMAgn1WbVmAEP5NgsvP74VWfXBT.bin';
     return (
       <div className="fixed inset-0 z-50 bg-black font-nunito">
         <Head title={`${content.title} - AR Camera`} />
         
-        {activeMindUrl ? (
-          <MindARViewer mindFileUrl={activeMindUrl} models={glbModels.length > 0 ? glbModels : content.models} />
-        ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-6 text-center">
-            <p className="font-bold text-lg mb-2">File Mind Target Belum Diunggah</p>
-            <p className="text-sm text-white/70 mb-4">Upload file .mind pada admin panel untuk mengaktifkan pemindaian AR.</p>
-            <button onClick={() => setIsCameraMode(false)} className="px-6 py-3 bg-violet-600 rounded-xl font-bold">
-              Buka Mode 3D Studio
-            </button>
-          </div>
-        )}
+        <MindARViewer mindFileUrl={activeMindUrl} models={glbModels.length > 0 ? glbModels : content.models} />
         
         {/* Top Controls */}
         <div className="absolute top-4 inset-x-4 z-50 flex justify-between items-start pointer-events-none">
