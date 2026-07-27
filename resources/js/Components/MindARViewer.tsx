@@ -52,13 +52,13 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
   const [selectedModel, setSelectedModel] = useState<ArModel | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Orientation State: 'vertically' (standing upright on screen/wall) or 'horizontally' (flat on desk/table)
-  const [orientationMode, setOrientationMode] = useState<'vertically' | 'horizontally'>('vertically');
+  // Orientation State: 'horizontally' (flat on desk/table, matching baseline) or 'vertically' (standing upright on screen/wall)
+  const [orientationMode, setOrientationMode] = useState<'vertically' | 'horizontally'>('horizontally');
   const [badgePositions, setBadgePositions] = useState<BadgePosition[]>([]);
 
   const anchorRef = useRef<any>(null);
   const modelContainersRef = useRef<ModelContainerMeta[]>([]);
-  const orientationModeRef = useRef<'vertically' | 'horizontally'>('vertically');
+  const orientationModeRef = useRef<'vertically' | 'horizontally'>('horizontally');
 
   // Trigger 360-degree horizontal spin animation on model & select info
   const handleSelectModel = (model: ArModel) => {
@@ -280,19 +280,6 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         domElement.addEventListener('click', handlePointerDown);
 
         await mindarThree.start();
-
-        // Ensure video element plays smoothly on mobile browsers (Safari/Chrome)
-        if (mindarThree.video) {
-          try {
-            mindarThree.video.muted = true;
-            mindarThree.video.setAttribute('playsinline', 'true');
-            mindarThree.video.setAttribute('autoplay', 'true');
-            await mindarThree.video.play();
-          } catch (vErr) {
-            console.warn("Autoplay video trigger fallback:", vErr);
-          }
-        }
-
         if (isMounted) setIsStarting(false);
 
         // Render loop with 3D to 2D Screen Space Projection for floating callout badges
