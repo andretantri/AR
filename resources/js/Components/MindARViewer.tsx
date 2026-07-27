@@ -280,6 +280,19 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         domElement.addEventListener('click', handlePointerDown);
 
         await mindarThree.start();
+
+        // Ensure video element plays smoothly on mobile browsers (Safari/Chrome)
+        if (mindarThree.video) {
+          try {
+            mindarThree.video.muted = true;
+            mindarThree.video.setAttribute('playsinline', 'true');
+            mindarThree.video.setAttribute('autoplay', 'true');
+            await mindarThree.video.play();
+          } catch (vErr) {
+            console.warn("Autoplay video trigger fallback:", vErr);
+          }
+        }
+
         if (isMounted) setIsStarting(false);
 
         // Render loop with 3D to 2D Screen Space Projection for floating callout badges
@@ -434,6 +447,9 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
         }
         #mindar-container video {
           z-index: 1 !important;
+          display: block !important;
+          opacity: 1 !important;
+          visibility: visible !important;
         }
         #mindar-container canvas {
           z-index: 10 !important;
