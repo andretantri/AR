@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { PageProps as BasePageProps } from '@/types';
 import PublicLayout from '@/Layouts/PublicLayout';
-import { Search, Eye, Star, Sparkles, Zap, BookOpen, Filter, ChevronRight, ArrowRight, Camera } from 'lucide-react';
+import { Search, Eye, Star, Sparkles, Zap, BookOpen, Filter, ChevronRight, ArrowRight, Camera, Monitor } from 'lucide-react';
 
 type PageProps = Omit<BasePageProps, 'auth'> & { auth?: { user?: any } };
 
@@ -174,10 +174,10 @@ export default function Home({ contents, categories, filters }: { contents: Pagi
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {contents.data.map((content) => (
-                <Link key={content.id} href={`/ar/${content.id}`} className="group">
-                  <div className="ar-card glass border border-white/10 hover:border-white/30 hover:shadow-2xl hover:shadow-violet-500/20 group-hover:-translate-y-2 transition-all duration-300">
-                    {/* Thumbnail */}
-                    <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-violet-900 to-indigo-900">
+                <div key={content.id} className="ar-card glass border border-white/10 hover:border-white/30 hover:shadow-2xl hover:shadow-violet-500/20 transition-all duration-300 rounded-3xl overflow-hidden flex flex-col justify-between">
+                  <div>
+                    {/* Thumbnail & Link */}
+                    <Link href={`/ar/${content.id}`} className="group block relative aspect-video overflow-hidden bg-gradient-to-br from-violet-900 to-indigo-900">
                       {content.thumbnail_url ? (
                         <img
                           src={content.thumbnail_url}
@@ -201,33 +201,53 @@ export default function Home({ contents, categories, filters }: { contents: Pagi
                         </div>
                       )}
 
-
                       {/* Play Button Overlay */}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/30">
                         <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-xl">
                           <Zap className="w-6 h-6 text-violet-700 ml-0.5" />
                         </div>
                       </div>
-                    </div>
+                    </Link>
 
                     {/* Content */}
                     <div className="p-4">
-                      <h3 className="font-black text-white text-sm leading-snug mb-2 line-clamp-2 group-hover:text-violet-300 transition-colors">
-                        {content.title}
-                      </h3>
+                      <Link href={`/ar/${content.id}`} className="hover:text-violet-300 transition-colors">
+                        <h3 className="font-black text-white text-sm leading-snug mb-2 line-clamp-2">
+                          {content.title}
+                        </h3>
+                      </Link>
                       {content.description && (
                         <p className="text-white/50 text-xs font-medium line-clamp-2 mb-3">
                           {content.description}
                         </p>
                       )}
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-white/40 flex items-center gap-1 ml-auto">
-                          <Eye className="w-3 h-3" /> {content.view_count}
-                        </span>
-                      </div>
                     </div>
                   </div>
-                </Link>
+
+                  {/* Card Footer Actions */}
+                  <div className="p-4 pt-0 space-y-3">
+                    <div className="flex items-center justify-between text-xs text-white/40 font-bold border-t border-white/10 pt-3">
+                      <span className="flex items-center gap-1">
+                        <Eye className="w-3.5 h-3.5" /> {content.view_count} tayangan
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link
+                        href={`/ar/${content.id}`}
+                        className="py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20 transition-all active:scale-95"
+                      >
+                        <Camera className="w-3.5 h-3.5" /> Kamera AR
+                      </Link>
+                      <Link
+                        href={`/ar/${content.id}?mode=3d`}
+                        className="py-2 px-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-violet-500/20 transition-all active:scale-95"
+                      >
+                        <Monitor className="w-3.5 h-3.5" /> Preview 3D
+                      </Link>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           )}
