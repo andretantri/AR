@@ -60,6 +60,11 @@ class ArViewerController extends Controller
                 'id' => $item->id,
                 'title' => $item->title,
                 'thumbnail_url' => $item->thumbnail_url,
+                'category' => $item->category ? [
+                    'name' => $item->category->name,
+                    'icon' => $item->category->icon,
+                    'color' => $item->category->color,
+                ] : null,
             ]);
 
         $arContent->load('models');
