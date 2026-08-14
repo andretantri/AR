@@ -232,9 +232,15 @@ export default function Home({ contents, categories, filters }: { contents: Pagi
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       <Link
                         href={`/ar/${content.id}`}
+                        className="py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/20 transition-all active:scale-95"
+                      >
+                        <Camera className="w-3.5 h-3.5" /> Kamera AR
+                      </Link>
+                      <Link
+                        href={`/ar/${content.id}?mode=3d`}
                         className="py-2 px-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-violet-500/20 transition-all active:scale-95"
                       >
                         <Monitor className="w-3.5 h-3.5" /> Preview 3D

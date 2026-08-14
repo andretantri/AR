@@ -365,9 +365,6 @@ export default function MindARViewer({ mindFileUrl, models }: Props) {
           console.warn("Cleanup mindar:", e);
         }
       }
-      
-      // Cleanup lingering UI overlays from MindAR
-      document.querySelectorAll('.mindar-ui-overlay').forEach(el => el.remove());
     };
   }, [mindFileUrl, models]);
 

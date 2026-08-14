@@ -23,7 +23,7 @@ interface Content {
   view_count: number;
   category: { name: string; slug: string; icon: string; color: string } | null;
 }
-interface RelatedContent { id: number; title: string; thumbnail_url: string | null; category?: { name: string; icon: string; color: string; }; }
+interface RelatedContent { id: number; title: string; thumbnail_url: string | null; }
 interface Props { content: Content; related: RelatedContent[]; }
 
 // -----------------------------------------------------------------------
@@ -86,7 +86,7 @@ function SceneModel({ model, isSelected, onClick }: { model: ArModel, isSelected
 export default function ArViewer({ content, related }: Props) {
   const [activeModelId, setActiveModelId] = useState<number | null>(null);
   const [showInfo, setShowInfo] = useState(false);
-  const [isCameraMode, setIsCameraMode] = useState(false);
+  const [isCameraMode, setIsCameraMode] = useState(true);
   
   // Check if there are any models that are GLB/GLTF
   const glbModels = content.models.filter(m => ['glb', 'gltf'].includes(m.file_type.toLowerCase()));
@@ -289,43 +289,6 @@ export default function ArViewer({ content, related }: Props) {
                       <p className="font-bold text-sm">{m.name}</p>
                       <p className="text-xs opacity-60 mt-1 line-clamp-1">{m.description || 'Tidak ada info tambahan'}</p>
                     </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Related Designs */}
-            {related.length > 0 && (
-              <div className="glass border border-white/10 rounded-3xl p-6">
-                <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-                  <BoxSelect className="w-4 h-4 text-amber-400" />
-                  Desain Serupa
-                </h3>
-                <div className="space-y-3">
-                  {related.map(item => (
-                    <Link
-                      key={item.id}
-                      href={`/ar/${item.id}`}
-                      className="group flex gap-3 p-2 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/20 transition-all items-center"
-                    >
-                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-violet-900 shrink-0">
-                        {item.thumbnail_url ? (
-                          <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-white/20">
-                            <i className="fa-solid fa-box text-xl"></i>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-sm text-white line-clamp-1 group-hover:text-violet-300 transition-colors">{item.title}</h4>
-                        {item.category && (
-                          <div className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded text-[10px] font-bold text-white/90" style={{ backgroundColor: item.category.color }}>
-                            <i className={item.category.icon}></i> {item.category.name}
-                          </div>
-                        )}
-                      </div>
-                    </Link>
                   ))}
                 </div>
               </div>

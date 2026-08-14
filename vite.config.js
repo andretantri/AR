@@ -25,18 +25,4 @@ export default defineConfig({
         }),
         react(),
     ],
-    build: {
-        rollupOptions: {
-            output: {
-                manualChunks: (id) => {
-                    if (id.includes('node_modules')) {
-                        return 'vendor';
-                    }
-                    if (id.includes('resources/js/Components/') || id.includes('resources/js/Layouts/')) {
-                        return 'shared';
-                    }
-                }
-            }
-        }
-    }
 });
