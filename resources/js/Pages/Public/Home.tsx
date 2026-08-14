@@ -28,8 +28,9 @@ export default function Home({ contents, categories, filters }: { contents: Pagi
   const welcomeTitle = appSettings?.welcome_title ?? 'Selamat Datang di Dunia AR!';
   const welcomeSubtitle = appSettings?.welcome_subtitle ?? 'Scan, lihat, dan pelajari dunia dengan teknologi Augmented Reality';
 
-  const applyFilters = () => {
-    router.get('/', { search, category: selectedCategory }, { preserveState: true });
+  const applyFilters = (overrideCategory?: string) => {
+    const catToUse = overrideCategory !== undefined ? overrideCategory : selectedCategory;
+    router.get('/', { search, category: catToUse }, { preserveState: true });
   };
 
   const clearFilters = () => {
@@ -96,7 +97,7 @@ export default function Home({ contents, categories, filters }: { contents: Pagi
                 />
               </div>
               <button
-                onClick={applyFilters}
+                onClick={() => applyFilters()}
                 className="h-14 px-6 rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-black transition-all shadow-lg shadow-violet-500/40 hover:-translate-y-0.5 active:scale-95"
               >
                 <Search className="w-5 h-5" />
@@ -118,7 +119,7 @@ export default function Home({ contents, categories, filters }: { contents: Pagi
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
             <button
-              onClick={() => { setSelectedCategory(''); applyFilters(); }}
+              onClick={() => { setSelectedCategory(''); applyFilters(''); }}
               className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
                 !selectedCategory ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/30' : 'glass text-white/70 hover:bg-white/20'
               }`}
@@ -128,7 +129,7 @@ export default function Home({ contents, categories, filters }: { contents: Pagi
             {categories.map(cat => (
               <button
                 key={cat.id}
-                onClick={() => { setSelectedCategory(cat.slug); setTimeout(applyFilters, 50); }}
+                onClick={() => { setSelectedCategory(cat.slug); applyFilters(cat.slug); }}
                 className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
                   selectedCategory === cat.slug ? 'text-white shadow-lg' : 'glass text-white/70 hover:bg-white/20'
                 }`}

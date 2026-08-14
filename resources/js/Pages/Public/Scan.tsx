@@ -62,6 +62,12 @@ function Scan() {
 
     return () => {
       stopScanner();
+      // Force remove any leftover elements from html5-qrcode that might persist globally
+      const shadedRegion = document.getElementById('qr-shaded-region');
+      if (shadedRegion) shadedRegion.remove();
+      
+      // Remove any elements with scanning-related classes just in case
+      document.querySelectorAll('.qr-shaded-region').forEach(el => el.remove());
     };
   }, []);
 
@@ -112,10 +118,36 @@ function Scan() {
       }
     }
     setScanning(false);
+    
+    // Cleanup any leftover DOM elements
+    const shadedRegion = document.getElementById('qr-shaded-region');
+    if (shadedRegion) shadedRegion.remove();
+    document.querySelectorAll('.qr-shaded-region, [id^="qr-"]').forEach(el => {
+      if (el.id !== 'reader') el.remove();
+    });
+    document.querySelectorAll('body > svg').forEach(svg => {
+       if (svg.id === 'qr-shaded-region' || svg.classList.contains('qr-shaded-region')) {
+           svg.remove();
+       }
+    });
   };
 
   const handleScan = async (text: string) => {
     await stopScanner();
+    
+    // Aggressive DOM cleanup before routing
+    const shadedRegion = document.getElementById('qr-shaded-region');
+    if (shadedRegion) shadedRegion.remove();
+    document.querySelectorAll('.qr-shaded-region, [id^="qr-"]').forEach(el => {
+      // Don't remove the reader itself if it's still needed, but we are navigating away anyway
+      if (el.id !== 'reader') el.remove();
+    });
+    // Remove any leftover SVGs from html5-qrcode that might be appended to body
+    document.querySelectorAll('body > svg').forEach(svg => {
+       if (svg.id === 'qr-shaded-region' || svg.classList.contains('qr-shaded-region')) {
+           svg.remove();
+       }
+    });
     
     // Check if it's a valid URL pointing to our app
     try {
